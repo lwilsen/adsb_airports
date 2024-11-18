@@ -19,6 +19,7 @@ from sentinelhub import (
     SentinelHubRequest,
     bbox_to_dimensions,
 )
+import requests
 
 CLIENT_ID = '139dda82-905a-4f6c-8aaa-3a6635c5216c'
 CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")
@@ -29,12 +30,15 @@ config.sh_client_id = CLIENT_ID
 config.sh_client_secret = CLIENT_SECRET
 config.save("my-profile")
 
+'''PASS PARAMS TO APP'''
 
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
 DISTANCE = int(st.radio("Distance", ["500","100", "200", "300", "400", "50"]))
 RESOLUTION = st.select_slider("Resolution", options = [6,7,8,9,10,11], value=10)
 SIGNIFICANCE = st.number_input("Significance", 0,1000, value=1)
+
+
 
 with open('fl_airports.pkl', 'rb') as f:
     tam_air = pickle.load(f)
