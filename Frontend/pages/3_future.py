@@ -1,0 +1,15 @@
+import streamlit as st
+
+st.title("Future Plans")
+
+st.header("Better Satellite images")
+st.write('''
+Ideally it would be nice to have access to more advanced satellite imagery,
+         but that's a little too expensive for the scope of this project.
+''')
+
+st.header("More accurate ADS-B data")
+st.write('''
+The ADS-B data I collected was only from a couple of days, and so when I pull more data, 
+         it will be easier to identify airports and helipads.
+''')
