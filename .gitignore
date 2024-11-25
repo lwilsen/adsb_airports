@@ -1,1 +1,4 @@
 Backend/rf_best_mod.pkl
+Database/adsb_data.db
+Database/adsb_data_400m.csv
+Database/adsb_data_400m_expanded.csv
