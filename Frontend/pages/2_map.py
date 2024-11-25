@@ -1,25 +1,21 @@
 import streamlit as st
 import h3
 import geopandas as gpd
-import pickle
-from adsb_airports.Backend.utils import hexagons_dataframe_to_geojson, cell_to_shapely, plot_image, st_plot_image, center_to_bbox, cellToBbox
-import plotly_express as px
-from collections import Counter
+from utils import st_plot_image
 from streamlit_plotly_events import plotly_events
 import plotly.graph_objs as go
-from oauthlib.oauth2 import BackendApplicationClient
-from requests_oauthlib import OAuth2Session
 import os
+import json
+import pandas as pd
 from sentinelhub import SHConfig
 from sentinelhub import (
-    CRS,
     BBox,
     DataCollection,
     MimeType,
     SentinelHubRequest,
-    bbox_to_dimensions,
 )
 import requests
+import datetime
 
 CLIENT_ID = '139dda82-905a-4f6c-8aaa-3a6635c5216c'
 CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")
@@ -30,7 +26,6 @@ config.sh_client_id = CLIENT_ID
 config.sh_client_secret = CLIENT_SECRET
 config.save("my-profile")
 
-'''PASS PARAMS TO APP'''
 
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
@@ -42,24 +37,52 @@ params = {"Distance":DISTANCE,
           "Resolution": RESOLUTION,
           "Significance": SIGNIFICANCE}
 
-if st.button("Make Map!"):
-    response = requests.post("http://fastapi_route:5001/query-data",
-                                 json={"params":params}, timeout=10)
+temp_url = "http://127.0.0.1:8000/map"
+actual_url = "http://fastapi_route:5001/map"
+
+
+if SIGNIFICANCE >= 0:
+
+    response = requests.post(temp_url,json={"data":params}, timeout=10)
+
     if response.status_code == 200:
         try:
             result = response.json()
-            fig2 = result.get("fig2")
-            h3_df = result.get("h3_df")
+            geojson_obj_h3_gdf = result.get("geojson_obj_h3_gdf")
+            h3_df = pd.read_json(result.get("h3_df"))
+            h3_gdf = json.loads(result.get("h3_gdf"))
+            h3_gdf = gpd.GeoDataFrame.from_features(h3_gdf["features"])
+
+
 
         except requests.exceptions.JSONDecodeError:
             st.error("Error: The response is not in JSON format.")
             st.write("Response content:", response.text)
-            
-# backend will create and return fig2, and h3_df
 
+fig2 = go.Figure(
+        data=[
+go.Choroplethmapbox(
+    geojson=geojson_obj_h3_gdf,
+    locations=h3_gdf[f'H3_{RESOLUTION}_cell'],
+    z=h3_gdf['count'],
+    zmax=50,
+    zmin=0,
+    colorscale = 'inferno',
+    reversescale=False,
+    marker_opacity=0.7,
+    marker_line_color='white',
+    marker_line_width=0.5,
+    colorbar_title="Number of Planes"
+)
+],
+layout=go.Layout(
+mapbox_style="open-street-map",
+mapbox_center={"lat": 27.842490, "lon": -82.503222},
+mapbox_zoom=8,
+margin={"r": 0, "t": 0, "l": 0, "b": 0}
+)
+)
 fig2.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-'''Plotly Events'''
 
 selected_hexes = plotly_events(fig2, click_event= True, select_event = True)
 point_dict = fig2.data[0]['geojson']['features'] #can select using indices of selected hexes
@@ -123,58 +146,64 @@ st.subheader("Choose satellite box width and height")
 x_adjust = st.number_input("Choose latitude Adjustment", value = 0.02)
 y_adjust = st.number_input("Choose longitude Adjustment", value = 0.02)
 
+today = datetime.date.today()
+yesterday = datetime.date.today() - datetime.timedelta(days=1)
+beginning = st.date_input("Choose starting date", yesterday)
+ending = st.date_input("Choose end date (up to today)", today)
+
+
+box_params = {"x_adjust": x_adjust,
+              "y_adjust": y_adjust,
+              "cell_id": h3cell_id_list[0]}
+
+# Now need to copy paste below funcionality into fastapi app
+
 if st.button("Show me the satellite image!"):
+    response = requests.post(temp_url,
+                                 json={"data":box_params}, timeout=10)
+    if response.status_code == 200:
+        try:
+            result = response.json()
 
-    tampa_box_cords = cellToBbox(h3cell_id_list[0], 
-                                 x_adjust = x_adjust, 
-                                 y_adjust = y_adjust)
-    tampa_res = 1
-    tampa_bbox = BBox(bbox = tampa_box_cords, crs=CRS.WGS84)
-    tampa_size = bbox_to_dimensions(tampa_bbox, resolution=tampa_res)
-    
-    st.write(f"Box coordinates: {tampa_box_cords}")
-    st.write(f"Image shape at {tampa_res} m resolution: {tampa_size} pixels")
+            evalscript_true_color = result.get("evalscript_true_color")
+            tampa_bbox_dict = result.get("tampa_bbox")
 
-    if max(tampa_size) != 2500:
-        new_res = max(tampa_size) / 2500
-        tampa_bbox = BBox(bbox = tampa_box_cords, crs=CRS.WGS84)
-        tampa_size = bbox_to_dimensions(tampa_bbox, resolution=new_res)
-        st.write(f"New Image shape at {new_res} m resolution: {tampa_size} pixels")
+            tampa_box_coords = {"min_x": tampa_bbox_dict["min_x"], 
+                                "max_x": tampa_bbox_dict["max_x"], 
+                                "min_y": tampa_bbox_dict["min_y"], 
+                                "max_y": tampa_bbox_dict["max_y"]}
+            
+            tampa_box_crs = tampa_bbox_dict["_crs"]
 
-    evalscript_true_color = """
-        //VERSION=3
+            tampa_bbox = BBox(tampa_box_coords, tampa_box_crs)
+            tampa_size = result.get("tampa_size")
+            st.write(result.get("bcords_str")) #writes new box center cords
+            st.write(result.get("nw_rs_str")) #writes new box resolution (pixels)
 
-        function setup() {
-            return {
-                input: [{
-                    bands: ["B02", "B03", "B04"]
-                }],
-                output: {
-                    bands: 3
-                }
-            };
-        }
 
-        function evaluatePixel(sample) {
-            return [sample.B04, sample.B03, sample.B02];
-        }
-    """
 
-    tamp_request_tc = SentinelHubRequest(
-        evalscript=evalscript_true_color,
-        input_data=[
-            SentinelHubRequest.input_data(
-                data_collection=DataCollection.SENTINEL2_L1C,
-                time_interval=("2023-06-12", "2023-06-13"),
+
+
+            beginning_str = beginning.strftime("%Y-%m-%d")
+            ending_str = ending.strftime("%Y-%m-%d") 
+
+            tamp_request_tc = SentinelHubRequest(
+                evalscript=evalscript_true_color,
+                input_data=[
+                    SentinelHubRequest.input_data(
+                        data_collection=DataCollection.SENTINEL2_L1C,
+                        time_interval=(beginning_str, ending_str),
+                    )
+                ],
+                responses=[SentinelHubRequest.output_response("default", MimeType.PNG)],
+                bbox=tampa_bbox,
+                size=tampa_size,
+                config=config,
             )
-        ],
-        responses=[SentinelHubRequest.output_response("default", MimeType.PNG)],
-        bbox=tampa_bbox,
-        size=tampa_size,
-        config=config,
-    )
+            tamp_tc_imgs = tamp_request_tc.get_data()
+            tamp = tamp_tc_imgs[0]
+            st_plot_image(tamp, factor=3.5 / 255, clip_range=(0, 1))
 
-    tamp_tc_imgs = tamp_request_tc.get_data()
-    tamp = tamp_tc_imgs[0]
-    st_plot_image(tamp, factor=3.5 / 255, clip_range=(0, 1))
-    st.write("Image plotted")
+        except requests.exceptions.JSONDecodeError:
+            st.error("Error: The response is not in JSON format.")
+            st.write("Response content:", response.text)

@@ -1,19 +1,19 @@
-"""
-Utilities used by example notebooks
-"""
+'''
+Utils imports 
+'''
 from __future__ import annotations
 
-from geojson import Feature, Point, FeatureCollection
+from geojson import Feature, FeatureCollection
 import json
 import h3
 from shapely.geometry import Polygon
-
 from typing import Any
-
 import matplotlib.pyplot as plt
 import numpy as np
-
+import geopandas as gpd
 import streamlit as st
+from collections import Counter
+
 
 
 def plot_image(
@@ -92,3 +92,44 @@ def cellToBbox(cell_id, x_adjust, y_adjust):
     return(
         center_to_bbox(center[1], center[0], x_adjust, y_adjust)
     )
+
+def count_categories(categories):
+    return Counter(categories)
+
+def make_dfs (DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF):
+    """
+    Creates a choropleth map of H3 hexagons based on given parameters and a GeoDataFrame.
+
+    Args:
+        DISTANCE (int): Maximum distance from a point to consider for aggregation.
+        RESOLUTION (int): H3 resolution for hexagons.
+        SIGNIFICANCE (float): Minimum count of points in a hexagon to be displayed.
+        gdf (gpd.GeoDataFrame): GeoDataFrame containing spatial data.
+
+    Returns:
+        tuple: A tuple containing:
+            - fig2 (go.Figure): A Plotly figure showing the choropleth map.
+            - h3_df (gpd.GeoDataFrame): A GeoDataFrame containing aggregated H3 cell data.
+    """
+
+    Geom_DF = Geom_DF[Geom_DF['distance'] <= DISTANCE/69]
+
+    h3_df = Geom_DF.groupby(f'H3_{RESOLUTION}_cell').agg(count=(f'H3_{RESOLUTION}_cell', 
+                                                            'size'),
+                                                    category_counts=('category', 
+                                                                    count_categories)).reset_index()
+
+    h3_df = h3_df[h3_df['count'] >= SIGNIFICANCE]
+
+    #should create resolution columns beforehand, and just select from themm
+    h3_geoms = h3_df[f"H3_{RESOLUTION}_cell"].apply(lambda x: cell_to_shapely(x))
+    h3_gdf = gpd.GeoDataFrame(data=h3_df, geometry=h3_geoms, crs=4326)
+
+    geojson_obj_h3_gdf = hexagons_dataframe_to_geojson(h3_gdf,
+                                                hex_id_field=f'H3_{RESOLUTION}_cell',
+                                                value_field='count',
+                                                geometry_field='geometry')
+
+
+    return(h3_df, h3_gdf, geojson_obj_h3_gdf)
+#, h3_gdf, geojson_obj_h3_gdf

@@ -1,25 +1,13 @@
-from fastapi import FastAPI, HTTPException, Request
-import h3
-import geopandas as gpd
+from fastapi import FastAPI, Request
 import pickle
-from utils import hexagons_dataframe_to_geojson, cell_to_shapely, plot_image, st_plot_image
-import plotly_express as px
-from collections import Counter
-from streamlit_plotly_events import plotly_events
-import plotly.graph_objs as go
-from oauthlib.oauth2 import BackendApplicationClient
-from requests_oauthlib import OAuth2Session
+from utils import cellToBbox, make_dfs
 import os
 from sentinelhub import SHConfig
 from sentinelhub import (
     CRS,
     BBox,
-    DataCollection,
-    MimeType,
-    SentinelHubRequest,
     bbox_to_dimensions,
 )
-import pandas as pd
 
 '''SENTINAL SETUP'''
 
@@ -33,9 +21,7 @@ config.sh_client_secret = CLIENT_SECRET
 config.save("my-profile")
     
 '''Unpickling data sets'''
-
-with open('fl_airports.pkl', 'rb') as f:
-    tam_air = pickle.load(f)
+# Should try to access data sets through sqlite3
 
 with open('gdf_all_res.pkl','rb') as f: #resolution = 10
     gdf = pickle.load(f)
@@ -45,67 +31,73 @@ with open('gdf_all_res.pkl','rb') as f: #resolution = 10
 app = FastAPI()
 
 @app.post("/map")
-async def make_map(request : Request):
-
+async def handle_request(request : Request):
     try:
-    
         data = await request.json()
 
-        params = data.get("params")
+        if "Distance" in data.get('data'):
 
-        DISTANCE = params["Distance"]
-        RESOLUTION = params["Resolution"]
-        SIGNIFICANCE = params["Resolution"]
+            params = data.get('data')
+            
+            DISTANCE = params["Distance"]
+            RESOLUTION = params["Resolution"]
+            SIGNIFICANCE = params["Resolution"]
+# 
+            h3_df, h3_gdf, geojson_obj_h3_gdf = make_dfs(DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF = gdf)
+            h3_df = h3_df.to_json(orient = "records")
+            h3_gdf = h3_gdf.to_json()
 
-        def count_categories(categories):
-            return Counter(categories)
+            return {"h3_df": h3_df, "h3_gdf":h3_gdf, "geojson_obj_h3_gdf":geojson_obj_h3_gdf}
         
-        gdf = gdf[gdf['distance'] <= DISTANCE/69]
+        elif "x_adjust" in data.get('data'):
+            box_params = data.get("data")
 
-        h3_df = gdf.groupby(f'H3_{RESOLUTION}_cell').agg(count=(f'H3_{RESOLUTION}_cell', 
-                                                                'size'),
-                                                        category_counts=('category', 
-                                                                        count_categories)).reset_index()
+            x_adjust = box_params["x_adjust"]
+            y_adjust = box_params["y_adjust"]
+            cell_id = box_params["cell_id"]
+            tampa_box_cords = cellToBbox(cell_id,
+                                 x_adjust = x_adjust, 
+                                 y_adjust = y_adjust)
+            tampa_res = 1
+            tampa_bbox = BBox(bbox = tampa_box_cords, crs=CRS.WGS84)
+            tampa_size = bbox_to_dimensions(tampa_bbox, resolution=tampa_res)
+            
+            box_coords_string = (f"Box coordinates: {tampa_box_cords}")
 
-        h3_df = h3_df[h3_df['count'] >= SIGNIFICANCE]
+            if max(tampa_size) != 2500:
+                new_res = max(tampa_size) / 2500
+                tampa_bbox = BBox(bbox = tampa_box_cords, crs=CRS.WGS84)
+                tampa_size = bbox_to_dimensions(tampa_bbox, resolution=new_res)
+                new_res_string = (f"New Image shape at {new_res} m resolution: {tampa_size} pixels")
 
-        #should create resolution columns beforehand, and just select from themm
-        h3_geoms = h3_df[f"H3_{RESOLUTION}_cell"].apply(lambda x: cell_to_shapely(x))
-        h3_gdf = gpd.GeoDataFrame(data=h3_df, geometry=h3_geoms, crs=4326)
+            evalscript_true_color = """
+                //VERSION=3
 
-        geojson_obj_h3_gdf = hexagons_dataframe_to_geojson(h3_gdf,
-                                                    hex_id_field=f'H3_{RESOLUTION}_cell',
-                                                    value_field='count',
-                                                    geometry_field='geometry')
+                function setup() {
+                    return {
+                        input: [{
+                            bands: ["B02", "B03", "B04"]
+                        }],
+                        output: {
+                            bands: 3
+                        }
+                    };
+                }
 
-        fig2 = go.Figure(
-            data=[
-                go.Choroplethmapbox(
-                    geojson=geojson_obj_h3_gdf,
-                    locations=h3_gdf[f'H3_{RESOLUTION}_cell'],
-                    z=h3_gdf['count'],
-                    zmax=50,
-                    zmin=0,
-                    colorscale = 'inferno',
-                    reversescale=False,
-                    marker_opacity=0.7,
-                    marker_line_color='white',
-                    marker_line_width=0.5,
-                    colorbar_title="Number of Planes"
-                )
-            ],
-            layout=go.Layout(
-                mapbox_style="open-street-map",
-                mapbox_center={"lat": 27.842490, "lon": -82.503222},
-                mapbox_zoom=8,
-                margin={"r": 0, "t": 0, "l": 0, "b": 0}
-            )
-        )
+                function evaluatePixel(sample) {
+                    return [sample.B04, sample.B03, sample.B02];
+                }
+            """
+            print(type(tampa_bbox))
+            print(type(tampa_size))
+            for_st = {"evalscript_true_color":evalscript_true_color, 
+                      "tampa_bbox":tampa_bbox, 
+                      "tampa_size": tampa_size,
+                      "bcords_str":box_coords_string,
+                      "nw_rs_str":new_res_string}
 
-
-        # insert some json below
-        return {"fig2": fig2, "h3_df":h3_df}
-
+            return(for_st)
+    
     except Exception as e:
         
-        return {"Error during map making": str(e), "Data": data}
+        return {"Error during map making": str(e), "data":data}
