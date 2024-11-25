@@ -72,3 +72,23 @@ def cell_to_shapely(cell):
     coords = h3.cell_to_boundary(cell)
     flipped = tuple(coord[::-1] for coord in coords)
     return Polygon(flipped)
+
+def center_to_bbox(center_lat, center_lon, x_adjust, y_adjust):
+
+    if (x_adjust > 180) | (x_adjust < -180):
+        return("Error, X adjustments are too big in magnitude, convert to lat/lon degrees")
+
+    if (y_adjust > 180) | (y_adjust < -180):
+        return("Error, Y adjustments are too big in magnitude, convert to lat/lon degrees")
+
+
+    lower_corner = (center_lat - x_adjust, center_lon - y_adjust)
+    upper_corner = (center_lat + x_adjust, center_lon + y_adjust)
+
+    return (lower_corner[0], lower_corner[1], upper_corner[0], upper_corner[1])
+
+def cellToBbox(cell_id, x_adjust, y_adjust):
+    center = h3.cell_to_latlng(cell_id)
+    return(
+        center_to_bbox(center[1], center[0], x_adjust, y_adjust)
+    )

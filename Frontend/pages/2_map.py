@@ -2,7 +2,7 @@ import streamlit as st
 import h3
 import geopandas as gpd
 import pickle
-from utils import hexagons_dataframe_to_geojson, cell_to_shapely, plot_image, st_plot_image
+from adsb_airports.Backend.utils import hexagons_dataframe_to_geojson, cell_to_shapely, plot_image, st_plot_image, center_to_bbox, cellToBbox
 import plotly_express as px
 from collections import Counter
 from streamlit_plotly_events import plotly_events
@@ -38,60 +38,28 @@ DISTANCE = int(st.radio("Distance", ["500","100", "200", "300", "400", "50"]))
 RESOLUTION = st.select_slider("Resolution", options = [6,7,8,9,10,11], value=10)
 SIGNIFICANCE = st.number_input("Significance", 0,1000, value=1)
 
+params = {"Distance":DISTANCE,
+          "Resolution": RESOLUTION,
+          "Significance": SIGNIFICANCE}
 
+if st.button("Make Map!"):
+    response = requests.post("http://fastapi_route:5001/query-data",
+                                 json={"params":params}, timeout=10)
+    if response.status_code == 200:
+        try:
+            result = response.json()
+            fig2 = result.get("fig2")
+            h3_df = result.get("h3_df")
 
-with open('fl_airports.pkl', 'rb') as f:
-    tam_air = pickle.load(f)
-
-with open('gdf_all_res.pkl','rb') as f: #resolution = 10
-    gdf = pickle.load(f)
-
-gdf = gdf[gdf['distance'] <= DISTANCE/69]
-
-def count_categories(categories):
-    return Counter(categories)
-
-h3_df = gdf.groupby(f'H3_{RESOLUTION}_cell').agg(count=(f'H3_{RESOLUTION}_cell', 
-                                                        'size'),
-                                                 category_counts=('category', 
-                                                                  count_categories)).reset_index()
-
-h3_df = h3_df[h3_df['count'] >= SIGNIFICANCE]
-
-#should create resolution columns beforehand, and just select from themm
-h3_geoms = h3_df[f"H3_{RESOLUTION}_cell"].apply(lambda x: cell_to_shapely(x))
-h3_gdf = gpd.GeoDataFrame(data=h3_df, geometry=h3_geoms, crs=4326)
-
-geojson_obj_h3_gdf = hexagons_dataframe_to_geojson(h3_gdf,
-                                             hex_id_field=f'H3_{RESOLUTION}_cell',
-                                             value_field='count',
-                                             geometry_field='geometry')
-
-fig2 = go.Figure(
-    data=[
-        go.Choroplethmapbox(
-            geojson=geojson_obj_h3_gdf,
-            locations=h3_gdf[f'H3_{RESOLUTION}_cell'],
-            z=h3_gdf['count'],
-            zmax=50,
-            zmin=0,
-            colorscale = 'inferno',
-            reversescale=False,
-            marker_opacity=0.7,
-            marker_line_color='white',
-            marker_line_width=0.5,
-            colorbar_title="Number of Planes"
-        )
-    ],
-    layout=go.Layout(
-        mapbox_style="open-street-map",
-        mapbox_center={"lat": 27.842490, "lon": -82.503222},
-        mapbox_zoom=8,
-        margin={"r": 0, "t": 0, "l": 0, "b": 0}
-    )
-)
+        except requests.exceptions.JSONDecodeError:
+            st.error("Error: The response is not in JSON format.")
+            st.write("Response content:", response.text)
+            
+# backend will create and return fig2, and h3_df
 
 fig2.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+'''Plotly Events'''
 
 selected_hexes = plotly_events(fig2, click_event= True, select_event = True)
 point_dict = fig2.data[0]['geojson']['features'] #can select using indices of selected hexes
@@ -109,6 +77,8 @@ for hex_idx in hex_gjson_indx:
 
 filtered_df = h3_df[h3_df[f"H3_{RESOLUTION}_cell"].isin(h3cell_id_list)]
 st.write(filtered_df)
+
+'''ADS-B General info'''
 
 with st.expander("ADS-B aircraft category **A** information"):
     st.subheader("A Category")
@@ -148,26 +118,6 @@ with st.expander("ADS-B aircraft category **C** information"):
     * **C7:** Reserved
     """)
 
-#st.write(fig2.data)
-def center_to_bbox(center_lat, center_lon, x_adjust, y_adjust):
-
-    if (x_adjust > 180) | (x_adjust < -180):
-        return("Error, X adjustments are too big in magnitude, convert to lat/lon degrees")
-
-    if (y_adjust > 180) | (y_adjust < -180):
-        return("Error, Y adjustments are too big in magnitude, convert to lat/lon degrees")
-
-
-    lower_corner = (center_lat - x_adjust, center_lon - y_adjust)
-    upper_corner = (center_lat + x_adjust, center_lon + y_adjust)
-
-    return (lower_corner[0], lower_corner[1], upper_corner[0], upper_corner[1])
-
-def cellToBbox(cell_id, x_adjust, y_adjust):
-    center = h3.cell_to_latlng(cell_id)
-    return(
-        center_to_bbox(center[1], center[0], x_adjust, y_adjust)
-    )
 
 st.subheader("Choose satellite box width and height")
 x_adjust = st.number_input("Choose latitude Adjustment", value = 0.02)
