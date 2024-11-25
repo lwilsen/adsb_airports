@@ -1,6 +1,7 @@
-'''
+"""
 Utils imports 
-'''
+"""
+
 from __future__ import annotations
 from geojson import Feature, FeatureCollection
 import json
@@ -14,11 +15,13 @@ import streamlit as st
 from collections import Counter
 
 
-
 def plot_image(
-    image: np.ndarray, factor: float = 1.0, clip_range: tuple[float, float] | None = None, **kwargs: Any
+    image: np.ndarray,
+    factor: float = 1.0,
+    clip_range: tuple[float, float] | None = None,
+    **kwargs: Any,
 ) -> None:
-    '''
+    """
     Plots an RGB image using Matplotlib.
 
     Args:
@@ -26,7 +29,7 @@ def plot_image(
         factor: A scaling factor to apply to the image.
         clip_range: A tuple of (min, max) values to clip the image intensities.
         **kwargs: Additional keyword arguments to pass to `plt.imshow`.
-    '''
+    """
 
     _, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 15))
     if clip_range is not None:
@@ -36,10 +39,13 @@ def plot_image(
     ax.set_xticks([])
     ax.set_yticks([])
 
-def st_plot_image(image: np.ndarray, 
-                  factor: float = 1.0, 
-                  clip_range: tuple[float, float] | None = None, 
-                  **kwargs: Any) -> None:
+
+def st_plot_image(
+    image: np.ndarray,
+    factor: float = 1.0,
+    clip_range: tuple[float, float] | None = None,
+    **kwargs: Any,
+) -> None:
     """
     Plots an RGB image in a Streamlit app using Matplotlib.
 
@@ -57,14 +63,15 @@ def st_plot_image(image: np.ndarray,
     # Create a Matplotlib figure
     fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.imshow(image, **kwargs)
-    ax.axis('off')  # Turn off axis labels and ticks
+    ax.axis("off")  # Turn off axis labels and ticks
 
     # Display the Matplotlib figure in Streamlit
     st.pyplot(fig)
 
 
-
-def hexagons_dataframe_to_geojson(df_hex, hex_id_field,geometry_field, value_field,file_output = None):
+def hexagons_dataframe_to_geojson(
+    df_hex, hex_id_field, geometry_field, value_field, file_output=None
+):
     """
     Converts a GeoDataFrame of hexagons to a GeoJSON FeatureCollection.
 
@@ -72,7 +79,7 @@ def hexagons_dataframe_to_geojson(df_hex, hex_id_field,geometry_field, value_fie
         df_hex: The GeoDataFrame containing hexagon data.
         hex_id_field: The name of the column in `df_hex` containing hexagon IDs.
         geometry_field: The name of the column in `df_hex` containing the geometry.
-        value_field: The name of the column in `df_hex` containing the value to be associated 
+        value_field: The name of the column in `df_hex` containing the value to be associated
             with each hexagon.
         file_output: Optional file path to save the GeoJSON to.
 
@@ -83,9 +90,11 @@ def hexagons_dataframe_to_geojson(df_hex, hex_id_field,geometry_field, value_fie
     list_features = []
 
     for i, row in df_hex.iterrows():
-        feature = Feature(geometry = row[geometry_field],
-                          id = row[hex_id_field],
-                          properties = {"value": row[value_field]})
+        feature = Feature(
+            geometry=row[geometry_field],
+            id=row[hex_id_field],
+            properties={"value": row[value_field]},
+        )
         list_features.append(feature)
 
     feat_collection = FeatureCollection(list_features)
@@ -94,9 +103,10 @@ def hexagons_dataframe_to_geojson(df_hex, hex_id_field,geometry_field, value_fie
         with open(file_output, "w") as f:
             json.dump(feat_collection, f)
 
-    else :
-      return feat_collection
-    
+    else:
+        return feat_collection
+
+
 def cell_to_shapely(cell):
     """
     Converts an H3 cell ID to a Shapely Polygon.
@@ -110,6 +120,7 @@ def cell_to_shapely(cell):
     coords = h3.cell_to_boundary(cell)
     flipped = tuple(coord[::-1] for coord in coords)
     return Polygon(flipped)
+
 
 def center_to_bbox(center_lat, center_lon, x_adjust, y_adjust):
     """
@@ -125,16 +136,20 @@ def center_to_bbox(center_lat, center_lon, x_adjust, y_adjust):
         A tuple of (lower_lat, lower_lon, upper_lat, upper_lon).
     """
     if (x_adjust > 180) | (x_adjust < -180):
-        return("Error, X adjustments are too big in magnitude, convert to lat/lon degrees")
+        return (
+            "Error, X adjustments are too big in magnitude, convert to lat/lon degrees"
+        )
 
     if (y_adjust > 180) | (y_adjust < -180):
-        return("Error, Y adjustments are too big in magnitude, convert to lat/lon degrees")
-
+        return (
+            "Error, Y adjustments are too big in magnitude, convert to lat/lon degrees"
+        )
 
     lower_corner = (center_lat - x_adjust, center_lon - y_adjust)
     upper_corner = (center_lat + x_adjust, center_lon + y_adjust)
 
     return (lower_corner[0], lower_corner[1], upper_corner[0], upper_corner[1])
+
 
 def cellToBbox(cell_id, x_adjust, y_adjust):
     """
@@ -149,9 +164,8 @@ def cellToBbox(cell_id, x_adjust, y_adjust):
         A tuple of (lower_lat, lower_lon, upper_lat, upper_lon).
     """
     center = h3.cell_to_latlng(cell_id)
-    return(
-        center_to_bbox(center[1], center[0], x_adjust, y_adjust)
-    )
+    return center_to_bbox(center[1], center[0], x_adjust, y_adjust)
+
 
 def count_categories(categories):
     """
@@ -165,7 +179,8 @@ def count_categories(categories):
     """
     return Counter(categories)
 
-def make_dfs (DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF):
+
+def make_dfs(DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF):
     """
     Creates a choropleth map of H3 hexagons based on given parameters and a GeoDataFrame.
 
@@ -182,22 +197,27 @@ def make_dfs (DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF):
             - geojson_obj_h3_gdf: GeoJSON FeatureCollection of H3 cells.
     """
 
-    Geom_DF = Geom_DF[Geom_DF['distance'] <= DISTANCE/69]
+    Geom_DF = Geom_DF[Geom_DF["distance"] <= DISTANCE / 69]
 
-    h3_df = Geom_DF.groupby(f'H3_{RESOLUTION}_cell').agg(count=(f'H3_{RESOLUTION}_cell', 
-                                                            'size'),
-                                                    category_counts=('category', 
-                                                                    count_categories)).reset_index()
+    h3_df = (
+        Geom_DF.groupby(f"H3_{RESOLUTION}_cell")
+        .agg(
+            count=(f"H3_{RESOLUTION}_cell", "size"),
+            category_counts=("category", count_categories),
+        )
+        .reset_index()
+    )
 
-    h3_df = h3_df[h3_df['count'] >= SIGNIFICANCE]
+    h3_df = h3_df[h3_df["count"] >= SIGNIFICANCE]
 
     h3_geoms = h3_df[f"H3_{RESOLUTION}_cell"].apply(lambda x: cell_to_shapely(x))
     h3_gdf = gpd.GeoDataFrame(data=h3_df, geometry=h3_geoms, crs=4326)
 
-    geojson_obj_h3_gdf = hexagons_dataframe_to_geojson(h3_gdf,
-                                                hex_id_field=f'H3_{RESOLUTION}_cell',
-                                                value_field='count',
-                                                geometry_field='geometry')
+    geojson_obj_h3_gdf = hexagons_dataframe_to_geojson(
+        h3_gdf,
+        hex_id_field=f"H3_{RESOLUTION}_cell",
+        value_field="count",
+        geometry_field="geometry",
+    )
 
-
-    return(h3_df, h3_gdf, geojson_obj_h3_gdf)
+    return (h3_df, h3_gdf, geojson_obj_h3_gdf)

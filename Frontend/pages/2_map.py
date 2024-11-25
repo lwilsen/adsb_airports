@@ -20,6 +20,7 @@ This script relies on several external libraries:
 * pandas
 * datetime
 """
+
 import streamlit as st
 import h3
 import geopandas as gpd
@@ -39,7 +40,7 @@ from sentinelhub import (
 import requests
 import datetime
 
-CLIENT_ID = '139dda82-905a-4f6c-8aaa-3a6635c5216c'
+CLIENT_ID = "139dda82-905a-4f6c-8aaa-3a6635c5216c"
 CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")
 
 config = SHConfig()
@@ -51,7 +52,7 @@ config.save("my-profile")
 
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
-DISTANCE = int(st.radio("Distance", ["500","100", "200", "300", "400", "50"]))
+DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 """
 This function creates a radio button element in the Streamlit app 
 allowing users to choose a distance value (e.g., 500 meters).
@@ -65,7 +66,7 @@ Returns:
     any: The selected value from the radio button group.
 """
 
-RESOLUTION = st.select_slider("Resolution", options = [6,7,8,9,10,11], value=10)
+RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=10)
 """
 This function creates a slider element in the Streamlit app 
 allowing users to choose an H3 resolution level (e.g., 6 to 11).
@@ -79,7 +80,7 @@ Returns:
     any: The selected resolution level from the slider.
 """
 
-SIGNIFICANCE = st.number_input("Significance", 0,1000, value=1)
+SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
 """
 This function creates a number input element in the Streamlit app 
 allowing users to specify a significance level (e.g., 0 to 1000).
@@ -94,9 +95,7 @@ Returns:
     float: The entered significance level.
 """
 
-params = {"Distance":DISTANCE,
-          "Resolution": RESOLUTION,
-          "Significance": SIGNIFICANCE}
+params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
 
 temp_url = "http://127.0.0.1:8000/map"
 actual_url = "http://airport_fastapi_route:5001/map"
@@ -104,7 +103,7 @@ actual_url = "http://airport_fastapi_route:5001/map"
 
 if SIGNIFICANCE >= 0:
 
-    response = requests.post(actual_url,json={"data":params}, timeout=10)
+    response = requests.post(actual_url, json={"data": params}, timeout=10)
     """
     This function sends a POST request to the specified URL (actual_url) 
     containing the user-selected parameters in JSON format.
@@ -125,59 +124,62 @@ if SIGNIFICANCE >= 0:
             h3_gdf = json.loads(result.get("h3_gdf"))
             h3_gdf = gpd.GeoDataFrame.from_features(h3_gdf["features"])
 
-
-
         except requests.exceptions.JSONDecodeError:
             st.error("Error: The response is not in JSON format.")
             st.write("Response content:", response.text)
 
 fig2 = go.Figure(
-        data=[
-go.Choroplethmapbox(
-    geojson=geojson_obj_h3_gdf,
-    locations=h3_gdf[f'H3_{RESOLUTION}_cell'],
-    z=h3_gdf['count'],
-    zmax=50,
-    zmin=0,
-    colorscale = 'inferno',
-    reversescale=False,
-    marker_opacity=0.7,
-    marker_line_color='white',
-    marker_line_width=0.5,
-    colorbar_title="Number of Planes"
+    data=[
+        go.Choroplethmapbox(
+            geojson=geojson_obj_h3_gdf,
+            locations=h3_gdf[f"H3_{RESOLUTION}_cell"],
+            z=h3_gdf["count"],
+            zmax=50,
+            zmin=0,
+            colorscale="inferno",
+            reversescale=False,
+            marker_opacity=0.7,
+            marker_line_color="white",
+            marker_line_width=0.5,
+            colorbar_title="Number of Planes",
+        )
+    ],
+    layout=go.Layout(
+        mapbox_style="open-street-map",
+        mapbox_center={"lat": 27.842490, "lon": -82.503222},
+        mapbox_zoom=8,
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    ),
 )
-],
-layout=go.Layout(
-mapbox_style="open-street-map",
-mapbox_center={"lat": 27.842490, "lon": -82.503222},
-mapbox_zoom=8,
-margin={"r": 0, "t": 0, "l": 0, "b": 0}
-)
-)
-fig2.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig2.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
-selected_hexes = plotly_events(fig2, click_event= True, select_event = True)
-point_dict = fig2.data[0]['geojson']['features'] #can select using indices of selected hexes
-st.write("Click on a cell, and then press the button below to see the satellite image of that location.")
+selected_hexes = plotly_events(fig2, click_event=True, select_event=True)
+point_dict = fig2.data[0]["geojson"][
+    "features"
+]  # can select using indices of selected hexes
+st.write(
+    "Click on a cell, and then press the button below to see the satellite image of that location."
+)
 
 hex_gjson_indx = []
 for hex in selected_hexes:
-    hex_gjson_indx.append(hex['pointIndex'])
+    hex_gjson_indx.append(hex["pointIndex"])
 
 h3cell_id_list = []
-for hex_idx in hex_gjson_indx:  
-    h3cell_id = point_dict[hex_idx]['id']
+for hex_idx in hex_gjson_indx:
+    h3cell_id = point_dict[hex_idx]["id"]
     h3cell_id_list.append(h3cell_id)
     st.write(f"H3 cell centroid coordinates: {h3.cell_to_latlng(h3cell_id)}")
 
 filtered_df = h3_df[h3_df[f"H3_{RESOLUTION}_cell"].isin(h3cell_id_list)]
 st.write(filtered_df)
 
-'''ADS-B General info'''
+"""ADS-B General info"""
 
 with st.expander("ADS-B aircraft category **A** information"):
     st.subheader("A Category")
-    st.markdown("""
+    st.markdown(
+        """
     * **A0:** No ADS-B emitter category information.
     * **A1:** Light (< 15500 lbs) - Any airplane with a maximum takeoff weight less than 15,500 pounds.
     * **A2:** Small (15500 to 75000 lbs) - Any airplane with a maximum takeoff weight greater than or equal to 15,500 pounds but less than 75,000 pounds.
@@ -186,10 +188,12 @@ with st.expander("ADS-B aircraft category **A** information"):
     * **A5:** Heavy (> 300000 lbs) - Any airplane with a maximum takeoff weight equal to or above 300,000 pounds.
     * **A6:** High performance (> 5g acceleration and 400 kts) - Any airplane, regardless of weight, which can maneuver in excess of 5 G's and maintain true airspeed above 400 knots.
     * **A7:** Rotorcraft - Any rotorcraft regardless of weight.
-    """)
+    """
+    )
 with st.expander("ADS-B aircraft category **B** information"):
     st.subheader("B Category")
-    st.markdown("""
+    st.markdown(
+        """
     * **B0:** No ADS-B emitter category information.
     * **B1:** Glider / sailplane - Any glider or sailplane regardless of weight.
     * **B2:** Lighter-than-air - Any lighter than air (airship or balloon) regardless of weight.
@@ -198,11 +202,13 @@ with st.expander("ADS-B aircraft category **B** information"):
     * **B5:** Reserved
     * **B6:** Unmanned aerial vehicle - Any unmanned aerial vehicle or unmanned aircraft system regardless of weight.
     * **B7:** Space / trans-atmospheric vehicle
-    """)
+    """
+    )
 
 with st.expander("ADS-B aircraft category **C** information"):
     st.subheader("C Category")
-    st.markdown("""
+    st.markdown(
+        """
     * **C0:** No ADS-B emitter category information.
     * **C1:** Surface vehicle - emergency vehicle
     * **C2:** Surface vehicle - service vehicle
@@ -211,12 +217,13 @@ with st.expander("ADS-B aircraft category **C** information"):
     * **C5:** Line obstacle
     * **C6:** Reserved
     * **C7:** Reserved
-    """)
+    """
+    )
 
 
 st.subheader("Choose satellite box width and height")
-x_adjust = st.number_input("Choose latitude Adjustment", value = 0.02)
-y_adjust = st.number_input("Choose longitude Adjustment", value = 0.02)
+x_adjust = st.number_input("Choose latitude Adjustment", value=0.02)
+y_adjust = st.number_input("Choose longitude Adjustment", value=0.02)
 
 today = datetime.date.today()
 yesterday = datetime.date.today() - datetime.timedelta(days=1)
@@ -224,15 +231,12 @@ beginning = st.date_input("Choose starting date", yesterday)
 ending = st.date_input("Choose end date (up to today)", today)
 
 
-box_params = {"x_adjust": x_adjust,
-              "y_adjust": y_adjust,
-              "cell_id": h3cell_id_list[0]}
+box_params = {"x_adjust": x_adjust, "y_adjust": y_adjust, "cell_id": h3cell_id_list[0]}
 
 # Now need to copy paste below funcionality into fastapi app
 
 if st.button("Show me the satellite image!"):
-    response = requests.post(actual_url,
-                                 json={"data":box_params}, timeout=10)
+    response = requests.post(actual_url, json={"data": box_params}, timeout=10)
     """
     This function sends a POST request to the specified URL (actual_url) 
     containing the user-selected parameters in JSON format.
@@ -252,24 +256,22 @@ if st.button("Show me the satellite image!"):
             evalscript_true_color = result.get("evalscript_true_color")
             tampa_bbox_dict = result.get("tampa_bbox")
 
-            tampa_box_coords = {"min_x": tampa_bbox_dict["min_x"], 
-                                "max_x": tampa_bbox_dict["max_x"], 
-                                "min_y": tampa_bbox_dict["min_y"], 
-                                "max_y": tampa_bbox_dict["max_y"]}
-            
+            tampa_box_coords = {
+                "min_x": tampa_bbox_dict["min_x"],
+                "max_x": tampa_bbox_dict["max_x"],
+                "min_y": tampa_bbox_dict["min_y"],
+                "max_y": tampa_bbox_dict["max_y"],
+            }
+
             tampa_box_crs = tampa_bbox_dict["_crs"]
 
             tampa_bbox = BBox(tampa_box_coords, tampa_box_crs)
             tampa_size = result.get("tampa_size")
-            st.write(result.get("bcords_str")) #writes new box center cords
-            st.write(result.get("nw_rs_str")) #writes new box resolution (pixels)
-
-
-
-
+            st.write(result.get("bcords_str"))  # writes new box center cords
+            st.write(result.get("nw_rs_str"))  # writes new box resolution (pixels)
 
             beginning_str = beginning.strftime("%Y-%m-%d")
-            ending_str = ending.strftime("%Y-%m-%d") 
+            ending_str = ending.strftime("%Y-%m-%d")
 
             tamp_request_tc = SentinelHubRequest(
                 evalscript=evalscript_true_color,

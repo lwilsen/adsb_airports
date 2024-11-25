@@ -1,17 +1,19 @@
 """
 This script launches a streamlit app that is the home page of a ADSB data based data science project.
 """
+
 import streamlit as st
 
 st.title("ADS-B/Airport Data Science Project")
 st.write("Luke Wilsen")
 st.divider()
 
-st.header('''**Project Goal**''')
-st.write('''Predict the location of airports in Florida''')
+st.header("""**Project Goal**""")
+st.write("""Predict the location of airports in Florida""")
 
 st.subheader("About the Data")
-st.write('''
+st.write(
+    """
 - This data contains information about aircraft and was obtained from an online API of ADSB data, courtesy of Brett Waugh. (Thanks Brett!)
 
 ### What is ADS-B Data?
@@ -36,4 +38,5 @@ Below is a detailed explanation of the different fields available in the data.
 - **`lat`**: Latitude in degrees.  
 - **`lon`**: Longitude in degrees.  
 
----''')
+---"""
+)
