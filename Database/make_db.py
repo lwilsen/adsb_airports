@@ -3,7 +3,7 @@
 import sqlite3
 import pandas as pd
 
-df_400m = pd.read_csv("adsb_data_400/adsb_data_400m.csv")
+df_400m = pd.read_csv("adsb_data_400m.csv")
 
 conn = sqlite3.connect("adsb_data.db")
 

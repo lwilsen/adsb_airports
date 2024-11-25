@@ -1,2 +1,12 @@
 streamlit
 pandas
+h3
+geopandas
+streamlit_plotly_events
+plotly
+sentinelhub
+requests
+geojson
+shapely
+matplotlib
+numpy

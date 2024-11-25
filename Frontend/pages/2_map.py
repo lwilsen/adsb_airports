@@ -38,12 +38,12 @@ params = {"Distance":DISTANCE,
           "Significance": SIGNIFICANCE}
 
 temp_url = "http://127.0.0.1:8000/map"
-actual_url = "http://fastapi_route:5001/map"
+actual_url = "http://airport_fastapi_route:5001/map"
 
 
 if SIGNIFICANCE >= 0:
 
-    response = requests.post(temp_url,json={"data":params}, timeout=10)
+    response = requests.post(actual_url,json={"data":params}, timeout=10)
 
     if response.status_code == 200:
         try:
@@ -159,7 +159,7 @@ box_params = {"x_adjust": x_adjust,
 # Now need to copy paste below funcionality into fastapi app
 
 if st.button("Show me the satellite image!"):
-    response = requests.post(temp_url,
+    response = requests.post(actual_url,
                                  json={"data":box_params}, timeout=10)
     if response.status_code == 200:
         try:

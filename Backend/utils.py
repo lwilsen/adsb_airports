@@ -2,7 +2,6 @@
 Utils imports 
 '''
 from __future__ import annotations
-
 from geojson import Feature, FeatureCollection
 import json
 import h3
