@@ -1,3 +1,17 @@
+"""
+This script explores a dataset of grounded airplanes.
+
+It reads a pickled DataFrame from 'grounded.pkl' and performs the following:
+
+1. **Displays a descriptive text:** Provides context about the data and analysis.
+2. **Displays a table:** Shows a tabular representation of the first few rows of the DataFrame.
+3. **Plots histograms:** Visualizes the distribution of latitude, longitude, and ground speed using Matplotlib.
+    - Latitude histogram: Shows the frequency of different latitude values.
+    - Longitude histogram: Shows the frequency of different longitude values.
+    - Ground Speed histogram: Shows the frequency of different ground speed values.
+4. **Displays the plots:** Uses Streamlit to render the Matplotlib figures in the web app.
+"""
+
 import streamlit as st
 import pickle
 import matplotlib.pyplot as plt

@@ -1,3 +1,25 @@
+"""
+This Python script utilizes Streamlit to create a data visualization 
+application focusing on ADS-B aircraft data and satellite imagery. 
+
+Users can select various parameters including distance, resolution, 
+and significance level to retrieve data points. The script also allows 
+users to choose a specific H3 cell and display its corresponding 
+satellite image.
+
+This script relies on several external libraries:
+
+* Streamlit
+* h3
+* geopandas
+* utils (assumed to be a custom library containing st_plot_image)
+* streamlit_plotly_events
+* plotly.graph_objs
+* sentinelhub
+* requests
+* pandas
+* datetime
+"""
 import streamlit as st
 import h3
 import geopandas as gpd
@@ -30,8 +52,47 @@ config.save("my-profile")
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
 DISTANCE = int(st.radio("Distance", ["500","100", "200", "300", "400", "50"]))
+"""
+This function creates a radio button element in the Streamlit app 
+allowing users to choose a distance value (e.g., 500 meters).
+
+Args:
+    * title (str): The text displayed next to the radio button group.
+    * options (list): A list of strings representing the available options.
+    * value (any, optional): The default value to be selected. Defaults to None.
+
+Returns:
+    any: The selected value from the radio button group.
+"""
+
 RESOLUTION = st.select_slider("Resolution", options = [6,7,8,9,10,11], value=10)
+"""
+This function creates a slider element in the Streamlit app 
+allowing users to choose an H3 resolution level (e.g., 6 to 11).
+
+Args:
+    * title (str): The text displayed next to the slider.
+    * options (list): A list of integers representing the available resolution levels.
+    * value (any, optional): The default value to be selected. Defaults to None.
+
+Returns:
+    any: The selected resolution level from the slider.
+"""
+
 SIGNIFICANCE = st.number_input("Significance", 0,1000, value=1)
+"""
+This function creates a number input element in the Streamlit app 
+allowing users to specify a significance level (e.g., 0 to 1000).
+
+Args:
+    * title (str): The text displayed next to the number input field.
+    * min_value (float, optional): The minimum allowed value. Defaults to 0.
+    * max_value (float, optional): The maximum allowed value. Defaults to 1.
+    * value (float, optional): The default value to be selected. Defaults to None.
+
+Returns:
+    float: The entered significance level.
+"""
 
 params = {"Distance":DISTANCE,
           "Resolution": RESOLUTION,
@@ -44,7 +105,18 @@ actual_url = "http://airport_fastapi_route:5001/map"
 if SIGNIFICANCE >= 0:
 
     response = requests.post(actual_url,json={"data":params}, timeout=10)
+    """
+    This function sends a POST request to the specified URL (actual_url) 
+    containing the user-selected parameters in JSON format.
 
+    Args:
+        * url (str): The URL of the API endpoint.
+        * json (dict, optional): A JSON object containing the data to be sent.
+        * timeout (float, optional): The maximum time (in seconds) to wait for a response.
+
+    Returns:
+        requests.Response: The response object from the server.
+    """
     if response.status_code == 200:
         try:
             result = response.json()
@@ -161,6 +233,18 @@ box_params = {"x_adjust": x_adjust,
 if st.button("Show me the satellite image!"):
     response = requests.post(actual_url,
                                  json={"data":box_params}, timeout=10)
+    """
+    This function sends a POST request to the specified URL (actual_url) 
+    containing the user-selected parameters in JSON format.
+
+    Args:
+        * url (str): The URL of the API endpoint.
+        * json (dict, optional): A JSON object containing the data to be sent.
+        * timeout (float, optional): The maximum time (in seconds) to wait for a response.
+
+    Returns:
+        requests.Response: The response object from the server.
+    """
     if response.status_code == 200:
         try:
             result = response.json()

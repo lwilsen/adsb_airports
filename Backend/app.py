@@ -21,7 +21,6 @@ config.sh_client_secret = CLIENT_SECRET
 config.save("my-profile")
     
 '''Unpickling data sets'''
-# Should try to access data sets through sqlite3
 
 with open('gdf_all_res.pkl','rb') as f: #resolution = 10
     gdf = pickle.load(f)
@@ -32,6 +31,37 @@ app = FastAPI()
 
 @app.post("/map")
 async def handle_request(request : Request):
+    """
+    Processes user request for H3 grid data or bounding box information.
+
+    Args:
+        request : Request
+            The FastAPI request object containing the user data.
+
+    Returns
+        dict:
+            A dictionary containing the requested data or an error message.
+
+            - If "Distance" is present in the request data:
+                - "h3_df": JSON string containing H3 grid data.
+                - "h3_gdf": JSON string containing GeoPandas DataFrame data.
+                - "geojson_obj_h3_gdf": GeoJSON object of the H3 grid data.
+            - If "x_adjust" is present in the request data:
+                - "bcords_str": String containing the bounding box coordinates.
+                - "nw_rs_str": (Optional) String containing the new image shape 
+                            information (if adjusted resolution is needed).
+                - "for_st": Dictionary containing the processing parameters.
+                    - "evalscript_true_color": String containing the evaluation script.
+                    - "tampa_bbox": SentinelHub BBox object.
+                    - "tampa_size": Tuple representing the image dimensions.
+            - If an error occurs:
+                - "Error during map making": String describing the error.
+                - "data": The original user data.
+
+    Raises
+        Exception:
+            Any exception that occurs during processing.
+    """
     try:
         data = await request.json()
 

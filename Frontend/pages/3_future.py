@@ -1,3 +1,8 @@
+"""
+This Streamlit app outlines the future plans for the project, focusing on 
+improving satellite imagery and ADS-B data collection.
+"""
+
 import streamlit as st
 
 st.title("Future Plans")
