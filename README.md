@@ -5,7 +5,15 @@ The code can be adapted to anywhere in the world where ADS-B data is available.
 
 This app depends on having an API key from the Sentinal satellite imagery API. You'll need to create an account with them, but they have a free 30 day trial which is what I used to make this app. (https://www.sentinel-hub.com/develop/api/) 
 
-To run the app, you'll need to add your api key to the docker-compose.yml template I've provided, and then run "docker compose build". Then run "docker compose up" and go to the link provided in your terminal/console window.
+To run the app, you'll need to add your api key to the docker-compose.yml template I've provided, and then run 
+```
+docker compose build
+```
+Then run 
+```
+docker compose up
+```
+and go to the link provided in your terminal/console window.
 
 The coolest part of this project is clicking a hex on the plotly map, and then viewing a satellite image of that area.
 
