@@ -39,6 +39,9 @@ from sentinelhub import (
 )
 import requests
 import datetime
+from openai import OpenAI
+
+import base64
 
 CLIENT_ID = "139dda82-905a-4f6c-8aaa-3a6635c5216c"
 CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")
@@ -53,47 +56,13 @@ config.save("my-profile")
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
 DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
-"""
-This function creates a radio button element in the Streamlit app 
-allowing users to choose a distance value (e.g., 500 meters).
 
-Args:
-    * title (str): The text displayed next to the radio button group.
-    * options (list): A list of strings representing the available options.
-    * value (any, optional): The default value to be selected. Defaults to None.
-
-Returns:
-    any: The selected value from the radio button group.
-"""
 
 RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=10)
-"""
-This function creates a slider element in the Streamlit app 
-allowing users to choose an H3 resolution level (e.g., 6 to 11).
 
-Args:
-    * title (str): The text displayed next to the slider.
-    * options (list): A list of integers representing the available resolution levels.
-    * value (any, optional): The default value to be selected. Defaults to None.
-
-Returns:
-    any: The selected resolution level from the slider.
-"""
 
 SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
-"""
-This function creates a number input element in the Streamlit app 
-allowing users to specify a significance level (e.g., 0 to 1000).
 
-Args:
-    * title (str): The text displayed next to the number input field.
-    * min_value (float, optional): The minimum allowed value. Defaults to 0.
-    * max_value (float, optional): The maximum allowed value. Defaults to 1.
-    * value (float, optional): The default value to be selected. Defaults to None.
-
-Returns:
-    float: The entered significance level.
-"""
 
 params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
 
@@ -104,18 +73,7 @@ actual_url = "http://airport_fastapi_route:5001/map"
 if SIGNIFICANCE >= 0:
 
     response = requests.post(actual_url, json={"data": params}, timeout=10)
-    """
-    This function sends a POST request to the specified URL (actual_url) 
-    containing the user-selected parameters in JSON format.
 
-    Args:
-        * url (str): The URL of the API endpoint.
-        * json (dict, optional): A JSON object containing the data to be sent.
-        * timeout (float, optional): The maximum time (in seconds) to wait for a response.
-
-    Returns:
-        requests.Response: The response object from the server.
-    """
     if response.status_code == 200:
         try:
             result = response.json()
@@ -237,18 +195,7 @@ box_params = {"x_adjust": x_adjust, "y_adjust": y_adjust, "cell_id": h3cell_id_l
 
 if st.button("Show me the satellite image!"):
     response = requests.post(actual_url, json={"data": box_params}, timeout=10)
-    """
-    This function sends a POST request to the specified URL (actual_url) 
-    containing the user-selected parameters in JSON format.
 
-    Args:
-        * url (str): The URL of the API endpoint.
-        * json (dict, optional): A JSON object containing the data to be sent.
-        * timeout (float, optional): The maximum time (in seconds) to wait for a response.
-
-    Returns:
-        requests.Response: The response object from the server.
-    """
     if response.status_code == 200:
         try:
             result = response.json()
@@ -288,7 +235,45 @@ if st.button("Show me the satellite image!"):
             )
             tamp_tc_imgs = tamp_request_tc.get_data()
             tamp = tamp_tc_imgs[0]
-            st_plot_image(tamp, factor=3.5 / 255, clip_range=(0, 1))
+            image_path = st_plot_image(tamp, 
+                  factor=3.5 / 255, 
+                  clip_range=(0, 1), 
+                  filename = "sat_plot.jpg")
+            from openai import OpenAI
+
+            client = OpenAI()
+
+            import base64
+
+            # Function to encode the image
+            def encode_image(image_path):
+                with open(image_path, "rb") as image_file:
+                    return base64.b64encode(image_file.read()).decode('utf-8')
+
+            # Getting the base64 string
+            base64_image = encode_image(image_path)
+
+            response = client.chat.completions.create(model="gpt-4o-mini",
+                                                    messages=[
+                                {
+                                "role": "user",
+                                "content": [
+                                    {
+                                    "type": "text",
+                                    "text": "Tell me about this image.",
+                                    },
+                                    {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url":  f"data:image/jpeg;base64,{base64_image}"
+                                    },
+                                    },
+                                ],
+                                }
+                            ],
+                            max_tokens = 300,
+                            )
+            st.subheader(response.choices[0].message.content)
 
         except requests.exceptions.JSONDecodeError:
             st.error("Error: The response is not in JSON format.")

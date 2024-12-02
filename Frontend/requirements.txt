@@ -10,3 +10,4 @@ geojson
 shapely
 matplotlib
 numpy
+openai

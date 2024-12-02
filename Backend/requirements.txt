@@ -10,3 +10,4 @@ shapely
 matplotlib
 numpy
 streamlit
+openai

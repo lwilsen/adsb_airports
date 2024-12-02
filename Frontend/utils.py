@@ -40,21 +40,24 @@ def plot_image(
     ax.set_yticks([])
 
 
-def st_plot_image(
-    image: np.ndarray,
-    factor: float = 1.0,
-    clip_range: tuple[float, float] | None = None,
-    **kwargs: Any,
-) -> None:
-    """
-    Plots an RGB image in a Streamlit app using Matplotlib.
+def st_plot_image(image: np.ndarray,
+                  factor: float = 1.0,
+                  clip_range: tuple[float, float] | None = None,
+                  filename: str = "image.jpg",
+                  **kwargs: Any) -> str:
+    """Utility function for plotting RGB images in a Streamlit app using Matplotlib.
 
     Args:
-        image: The image data as a NumPy array.
+        image: The image to plot as a NumPy array.
         factor: A scaling factor to apply to the image.
-        clip_range: A tuple of (min, max) values to clip the image intensities.
+        clip_range: A tuple specifying the minimum and maximum values to clip the image to.
+        filename: The desired filename for the saved image.
         **kwargs: Additional keyword arguments to pass to `plt.imshow`.
+
+    Returns:
+        The path to the saved image file.
     """
+
     if clip_range is not None:
         image = np.clip(image * factor, *clip_range)
     else:
@@ -63,10 +66,15 @@ def st_plot_image(
     # Create a Matplotlib figure
     fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.imshow(image, **kwargs)
-    ax.axis("off")  # Turn off axis labels and ticks
+    ax.axis('off')  # Turn off axis labels and ticks
+
+    # Save the image to the specified filename
+    plt.savefig(filename)
 
     # Display the Matplotlib figure in Streamlit
     st.pyplot(fig)
+
+    return filename
 
 
 def hexagons_dataframe_to_geojson(
