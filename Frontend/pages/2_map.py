@@ -239,11 +239,8 @@ if st.button("Show me the satellite image!"):
                   factor=3.5 / 255, 
                   clip_range=(0, 1), 
                   filename = "sat_plot.jpg")
-            from openai import OpenAI
 
             client = OpenAI()
-
-            import base64
 
             # Function to encode the image
             def encode_image(image_path):
