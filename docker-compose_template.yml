@@ -1,0 +1,50 @@
+services:
+  database:
+    build:
+      context: ./Database
+      dockerfile: Dockerfile
+    container_name: airport_database
+    volumes:
+      - ./Database/adsb_data.db:/app/adsb_data.db
+  
+
+
+  backend:
+    environment:
+      - SENTINAL_API_KEY=!!!INSERT YOUR API KEY HERE!!!
+      - OPENAI_API_KEY=!!!INSERT YOUR API KEY HERE!!!
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: airport_fastapi_route
+    ports:
+      - 5001:5001
+    depends_on:
+      - database
+    volumes:
+      - ./Backend:/app
+      - ./Database/adsb_data.db:/app/adsb_data.db
+
+  frontend:
+    environment:
+      - SENTINAL_API_KEY=!!!INSERT YOUR API KEY HERE!!!
+      - OPENAI_API_KEY=!!!INSERT YOUR API KEY HERE!!!
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: airport_frontend
+    ports:
+      - 8001:8001
+    develop:
+      watch:
+        - action: sync
+          path: ./Frontend/adsb_front.py
+          target: /app/adsb_front.py
+        - action: sync
+          path: ./pages
+          target: /app/pages
+    depends_on:
+      - backend
+    volumes:
+      - ./Frontend:/app
+      - ./Database/adsb_data.db:/app/adsb_data.db

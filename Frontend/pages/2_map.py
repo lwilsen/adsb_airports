@@ -240,8 +240,9 @@ if st.button("Show me the satellite image!"):
                   clip_range=(0, 1), 
                   filename = "sat_plot.jpg")
 
-            client = OpenAI()
-
+            OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+            client = OpenAI(api_key=OPENAI_KEY)
+            
             # Function to encode the image
             def encode_image(image_path):
                 with open(image_path, "rb") as image_file:
