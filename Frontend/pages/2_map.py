@@ -43,8 +43,8 @@ from openai import OpenAI
 
 import base64
 
-CLIENT_ID = "139dda82-905a-4f6c-8aaa-3a6635c5216c"
-CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")
+CLIENT_ID = "f25d7929-8ba4-44b5-8271-85fecb35f8a7" #updated as of 12/17/2024
+CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY") #updated 12/17/2024
 
 config = SHConfig()
 
