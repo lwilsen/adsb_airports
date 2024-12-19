@@ -188,13 +188,18 @@ yesterday = datetime.date.today() - datetime.timedelta(days=1)
 beginning = st.date_input("Choose starting date", yesterday)
 ending = st.date_input("Choose end date (up to today)", today)
 
-
-box_params = {"x_adjust": x_adjust, "y_adjust": y_adjust, "cell_id": h3cell_id_list[0]}
+try:
+    box_params = {"x_adjust": x_adjust, "y_adjust": y_adjust, "cell_id": h3cell_id_list[0]}
+except:
+    st.write("Please click on a cell to view the satellite image.")
 
 # Now need to copy paste below funcionality into fastapi app
 
 if st.button("Show me the satellite image!"):
-    response = requests.post(actual_url, json={"data": box_params}, timeout=10)
+    try:
+        response = requests.post(actual_url, json={"data": box_params}, timeout=10)
+    except:
+        st.write("Please select a cell to view")
 
     if response.status_code == 200:
         try:

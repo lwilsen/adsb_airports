@@ -8,6 +8,8 @@ from sentinelhub import (
     BBox,
     bbox_to_dimensions,
 )
+import sqlite3
+import json
 
 """SENTINAL SETUP"""
 
@@ -25,9 +27,23 @@ config.save("my-profile")
 with open("gdf_all_res.pkl", "rb") as f:  # resolution = 10
     gdf = pickle.load(f)
 
+"""SQLITE3 Databse conversion"""
+
+def get_db_connection():
+    conn = sqlite3.connect("adsb_data.db")
+    conn.row_factory = sqlite3.Row  # To get rows as dictionaries
+    return conn
+
 """Fast API"""
 
 app = FastAPI()
+
+@app.get("/data/gdf_expanded")
+def get_expanded_data():
+    conn = get_db_connection()
+    data = conn.execute("SELECT * FROM 'gdf_expanded'").fetchall()
+    conn.close()
+    return [dict(row) for row in data]
 
 
 @app.post("/map")
