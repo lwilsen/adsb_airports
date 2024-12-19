@@ -40,6 +40,7 @@ from sentinelhub import (
 import requests
 import datetime
 from openai import OpenAI
+import pickle
 
 import base64
 
@@ -55,6 +56,23 @@ config.save("my-profile")
 
 st.title("Data Visualization Page")
 st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
+
+"""data_url = "http://airport_fastapi_route:5001/data/gdf_expanded"
+
+data_response = requests.get(data_url)
+if data_response.status_code == 200:
+    gdf_expanded = pd.DataFrame(data_response.json())
+
+    st.write(gdf_expanded.head(10))
+else:
+    st.error(f"Failed to fetch data: {data_response.status_code}")"""
+
+
+with open("geo_dataframe.pkl","rb") as f:
+    geo_dataframe = pickle.load(f)
+
+st.write(geo_dataframe.head(10))
+
 DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 
 
@@ -69,15 +87,7 @@ params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIF
 temp_url = "http://127.0.0.1:8000/map"
 actual_url = "http://airport_fastapi_route:5001/map"
 
-data_url = "http://airport_fastapi_route:5001/data/gdf_expanded"
 
-data_response = requests.get(data_url)
-if data_response.status_code == 200:
-    gdf_expanded = pd.DataFrame(data_response.json())
-
-    st.write(gdf_expanded.head(10))
-else:
-    st.error(f"Failed to fetch data: {data_response.status_code}")
 
 if SIGNIFICANCE >= 0:
 
@@ -137,8 +147,4 @@ for hex_idx in hex_gjson_indx:
 st.write(h3cell_id_list[0])
 
 
-
-flight_counts = gdf_expanded.dropna().groupby(['flight', 't', f'h3_{RESOLUTION}_cell']).size().reset_index(name = 'count').sort_values(by = "count", ascending=False)
-
-num_cells = flight_counts.groupby(["flight",'t']).size().reset_index(name = 'number_of_cells').sort_values(by = 'number_of_cells', ascending=False)
-
+st.write(geo_dataframe[geo_dataframe['flight'] == h3cell_id_list[0]])
