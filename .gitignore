@@ -5,3 +5,6 @@ Database/adsb_data_400m_expanded.csv
 Database/geo_dataframe.csv
 docker-compose.yml
 Frontend/geo_dataframe.pkl
+Frontend/pages/tracker_w_sql.py
+Backend/geo_dataframe.pkl
+Backend/gdf_all_res.pkl
