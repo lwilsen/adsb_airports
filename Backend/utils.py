@@ -182,7 +182,7 @@ def count_categories(categories):
 
 def make_dfs(DISTANCE, RESOLUTION, SIGNIFICANCE, Geom_DF):
     """
-    Creates a the datasets need to make a choropleth map of H3 hexagons based on 
+    Creates a the datasets need to make a choropleth map of H3 hexagons based on
     given parameters and a GeoDataFrame.
 
     Args:

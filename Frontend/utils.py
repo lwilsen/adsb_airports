@@ -40,11 +40,13 @@ def plot_image(
     ax.set_yticks([])
 
 
-def st_plot_image(image: np.ndarray,
-                  factor: float = 1.0,
-                  clip_range: tuple[float, float] | None = None,
-                  filename: str = "image.jpg",
-                  **kwargs: Any) -> str:
+def st_plot_image(
+    image: np.ndarray,
+    factor: float = 1.0,
+    clip_range: tuple[float, float] | None = None,
+    filename: str = "image.jpg",
+    **kwargs: Any,
+) -> str:
     """Utility function for plotting RGB images in a Streamlit app using Matplotlib.
 
     Args:
@@ -66,7 +68,7 @@ def st_plot_image(image: np.ndarray,
     # Create a Matplotlib figure
     fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
     ax.imshow(image, **kwargs)
-    ax.axis('off')  # Turn off axis labels and ticks
+    ax.axis("off")  # Turn off axis labels and ticks
 
     # Save the image to the specified filename
     plt.savefig(filename)

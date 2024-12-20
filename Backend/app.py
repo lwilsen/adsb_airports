@@ -29,14 +29,17 @@ with open("gdf_all_res.pkl", "rb") as f:  # resolution = 10
 
 """SQLITE3 Databse conversion"""
 
+
 def get_db_connection():
     conn = sqlite3.connect("adsb_data.db")
     conn.row_factory = sqlite3.Row  # To get rows as dictionaries
     return conn
 
+
 """Fast API"""
 
 app = FastAPI()
+
 
 @app.get("/data/gdf_expanded")
 def get_expanded_data():

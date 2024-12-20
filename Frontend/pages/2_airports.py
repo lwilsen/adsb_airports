@@ -43,8 +43,8 @@ from openai import OpenAI
 
 import base64
 
-CLIENT_ID = "f25d7929-8ba4-44b5-8271-85fecb35f8a7" #updated as of 12/17/2024
-CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY") #updated 12/17/2024
+CLIENT_ID = "f25d7929-8ba4-44b5-8271-85fecb35f8a7"  # updated as of 12/17/2024
+CLIENT_SECRET = os.environ.get("SENTINAL_API_KEY")  # updated 12/17/2024
 
 config = SHConfig()
 
@@ -71,7 +71,7 @@ actual_url = "http://airport_fastapi_route:5001/map"
 
 
 if SIGNIFICANCE >= 0:
-    """ Inputs parameters to fastapi backend,returns df's needed to make plot"""
+    """Inputs parameters to fastapi backend,returns df's needed to make plot"""
     response = requests.post(actual_url, json={"data": params}, timeout=10)
 
     if response.status_code == 200:
@@ -189,7 +189,11 @@ beginning = st.date_input("Choose starting date", yesterday)
 ending = st.date_input("Choose end date (up to today)", today)
 
 try:
-    box_params = {"x_adjust": x_adjust, "y_adjust": y_adjust, "cell_id": h3cell_id_list[0]}
+    box_params = {
+        "x_adjust": x_adjust,
+        "y_adjust": y_adjust,
+        "cell_id": h3cell_id_list[0],
+    }
 except:
     st.write("Please click on a cell to view the satellite image.")
 
@@ -240,42 +244,42 @@ if st.button("Show me the satellite image!"):
             )
             tamp_tc_imgs = tamp_request_tc.get_data()
             tamp = tamp_tc_imgs[0]
-            image_path = st_plot_image(tamp, 
-                  factor=3.5 / 255, 
-                  clip_range=(0, 1), 
-                  filename = "sat_plot.jpg")
+            image_path = st_plot_image(
+                tamp, factor=3.5 / 255, clip_range=(0, 1), filename="sat_plot.jpg"
+            )
 
             OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
             client = OpenAI(api_key=OPENAI_KEY)
-            
+
             # Function to encode the image
             def encode_image(image_path):
                 with open(image_path, "rb") as image_file:
-                    return base64.b64encode(image_file.read()).decode('utf-8')
+                    return base64.b64encode(image_file.read()).decode("utf-8")
 
             # Getting the base64 string
             base64_image = encode_image(image_path)
 
-            response = client.chat.completions.create(model="gpt-4o-mini",
-                                                    messages=[
-                                {
-                                "role": "user",
-                                "content": [
-                                    {
-                                    "type": "text",
-                                    "text": "Tell me about this image.",
-                                    },
-                                    {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url":  f"data:image/jpeg;base64,{base64_image}"
-                                    },
-                                    },
-                                ],
-                                }
-                            ],
-                            max_tokens = 300,
-                            )
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Tell me about this image.",
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                },
+                            },
+                        ],
+                    }
+                ],
+                max_tokens=300,
+            )
             st.subheader(response.choices[0].message.content)
 
         except requests.exceptions.JSONDecodeError:
