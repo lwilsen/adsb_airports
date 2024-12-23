@@ -57,21 +57,23 @@ def airports():
     config.sh_client_secret = CLIENT_SECRET
     config.save("my-profile")
 
+
     st.title("Data Visualization Page")
     st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
     DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 
+
     RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=10)
+
 
     SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
 
-    params = {
-        "Distance": DISTANCE,
-        "Resolution": RESOLUTION,
-        "Significance": SIGNIFICANCE,
-    }
 
+    params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
+
+    temp_url = "http://127.0.0.1:8000/map"
     actual_url = "http://airport_fastapi_route:5001/map"
+
 
     if SIGNIFICANCE >= 0:
         """Inputs parameters to fastapi backend,returns df's needed to make plot"""
@@ -119,13 +121,12 @@ def airports():
         "features"
     ]  # can select using indices of selected hexes
     st.write(
-        """Click on a cell, and then press the button below 
-        to see the satellite image of that location."""
+        "Click on a cell, and then press the button below to see the satellite image of that location."
     )
 
     hex_gjson_indx = []
-    for hexx in selected_hexes:
-        hex_gjson_indx.append(hexx["pointIndex"])
+    for hex in selected_hexes:
+        hex_gjson_indx.append(hex["pointIndex"])
 
     h3cell_id_list = []
     for hex_idx in hex_gjson_indx:
@@ -135,6 +136,8 @@ def airports():
 
     filtered_df = h3_df[h3_df[f"H3_{RESOLUTION}_cell"].isin(h3cell_id_list)]
     st.write(filtered_df)
+
+
 
     st.subheader("Choose satellite box width and height")
     x_adjust = st.number_input("Choose latitude Adjustment", value=0.02)
@@ -151,9 +154,7 @@ def airports():
             "y_adjust": y_adjust,
             "cell_id": h3cell_id_list[0],
         }
-    except Exception as e:
-        if st.button("debug"):
-            st.write(f"Error: {e}")
+    except:
         st.write("Please click on a cell to view the satellite image.")
 
     # Now need to copy paste below funcionality into fastapi app
@@ -161,9 +162,7 @@ def airports():
     if st.button("Show me the satellite image!"):
         try:
             response = requests.post(actual_url, json={"data": box_params}, timeout=10)
-        except Exception as e:
-            if st.button("debug"):
-                st.write(f"Error: {e}")
+        except:
             st.write("Please select a cell to view")
 
         if response.status_code == 200:
@@ -198,9 +197,7 @@ def airports():
                             time_interval=(beginning_str, ending_str),
                         )
                     ],
-                    responses=[
-                        SentinelHubRequest.output_response("default", MimeType.PNG)
-                    ],
+                    responses=[SentinelHubRequest.output_response("default", MimeType.PNG)],
                     bbox=tampa_bbox,
                     size=tampa_size,
                     config=config,

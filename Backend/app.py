@@ -129,7 +129,7 @@ async def handle_request(request: Request):
                 "geojson_obj_h3_gdf": geojson_obj_h3_gdf,
             }
 
-        if "x_adjust" in data.get("data"):
+        elif "x_adjust" in data.get("data"):
             box_params = data.get("data")
 
             x_adjust = box_params["x_adjust"]

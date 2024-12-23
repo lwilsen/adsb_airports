@@ -113,7 +113,7 @@ def hexagons_dataframe_to_geojson(
 
     if file_output is not None:
         with open(file_output, "w") as f:
-            return json.dump(feat_collection, f)
+            json.dump(feat_collection, f)
 
     else:
         return feat_collection
