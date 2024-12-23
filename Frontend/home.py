@@ -5,6 +5,7 @@ This script launches a streamlit app that is the home page of a ADSB data based 
 import streamlit as st
 import pickle
 
+
 def home_page():
 
     st.title("ADS-B/Airport Data Science Project")
@@ -13,9 +14,9 @@ def home_page():
 
     st.header("""**Project Goals**""")
     st.write("""#### 1. Predict the location of airports in Florida.""")
-    st.write('#### 2. Track flight paths of specific planes in Florida.')
+    st.write("#### 2. Track flight paths of specific planes in Florida.")
 
-    if 'tracker_geo_dataframe.pkl' not in st.session_state:
+    if "tracker_geo_dataframe.pkl" not in st.session_state:
         with open("geo_dataframe.pkl", "rb") as f:
             geo_dataframe = pickle.load(f)
-        st.session_state['tracker_geo_dataframe.pkl'] = geo_dataframe
+        st.session_state["tracker_geo_dataframe.pkl"] = geo_dataframe

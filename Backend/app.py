@@ -1,3 +1,21 @@
+"""
+This module provides functionality for setting up a FastAPI application, interacting with Sentinel Hub APIs, and working with utility functions, file handling, and databases.
+
+Imports:
+- **FastAPI**: The core FastAPI class to create and configure the API.
+- **Request**: Used to handle HTTP requests in FastAPI routes.
+- **pickle**: A module for serializing and deserializing Python objects to and from byte streams.
+- **utils**: Custom utility functions for converting cell data to bounding boxes (cellToBbox) and creating DataFrames (make_dfs).
+- **os**: Provides a way to interact with the operating system, including file and directory management.
+- **sentinelhub.SHConfig**: Configuration class to set up Sentinel Hub access.
+- **sentinelhub**:
+    - **CRS**: Represents coordinate reference systems used in Sentinel Hub.
+    - **BBox**: A class to define bounding boxes used for spatial queries.
+    - **bbox_to_dimensions**: A utility function to calculate image dimensions from bounding box coordinates.
+- **sqlite3**: A module for interacting with SQLite databases, allowing queries and database management.
+- **json**: A module to parse and handle JSON data.
+"""
+
 from fastapi import FastAPI, Request
 import pickle
 from utils import cellToBbox, make_dfs

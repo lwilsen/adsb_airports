@@ -18,6 +18,7 @@ Run this script to launch the Streamlit app. The user can input queries to \
     interact with the model and retrieve information.
 """
 
+""" Imports streamlit and allows us to render the menu"""
 import streamlit as st
 from menu import render_menu
 

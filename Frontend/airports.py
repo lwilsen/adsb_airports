@@ -43,6 +43,7 @@ from openai import OpenAI
 
 import base64
 
+
 def airports():
 
     CLIENT_ID = "f25d7929-8ba4-44b5-8271-85fecb35f8a7"  # updated as of 12/17/2024
@@ -54,23 +55,22 @@ def airports():
     config.sh_client_secret = CLIENT_SECRET
     config.save("my-profile")
 
-
     st.title("Data Visualization Page")
     st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
     DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 
-
     RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=10)
-
 
     SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
 
-
-    params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
+    params = {
+        "Distance": DISTANCE,
+        "Resolution": RESOLUTION,
+        "Significance": SIGNIFICANCE,
+    }
 
     temp_url = "http://127.0.0.1:8000/map"
     actual_url = "http://airport_fastapi_route:5001/map"
-
 
     if SIGNIFICANCE >= 0:
         """Inputs parameters to fastapi backend,returns df's needed to make plot"""
@@ -134,8 +134,6 @@ def airports():
     filtered_df = h3_df[h3_df[f"H3_{RESOLUTION}_cell"].isin(h3cell_id_list)]
     st.write(filtered_df)
 
-
-
     st.subheader("Choose satellite box width and height")
     x_adjust = st.number_input("Choose latitude Adjustment", value=0.02)
     y_adjust = st.number_input("Choose longitude Adjustment", value=0.02)
@@ -194,7 +192,9 @@ def airports():
                             time_interval=(beginning_str, ending_str),
                         )
                     ],
-                    responses=[SentinelHubRequest.output_response("default", MimeType.PNG)],
+                    responses=[
+                        SentinelHubRequest.output_response("default", MimeType.PNG)
+                    ],
                     bbox=tampa_bbox,
                     size=tampa_size,
                     config=config,
@@ -242,4 +242,3 @@ def airports():
             except requests.exceptions.JSONDecodeError:
                 st.error("Error: The response is not in JSON format.")
                 st.write("Response content:", response.text)
-

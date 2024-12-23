@@ -1,11 +1,10 @@
-
-
 import streamlit as st
 from home import home_page
 from data import data
 from airports import airports
 from tracker import tracker
 from future import future
+
 
 def render_menu():
     """Render the sidebar menu with button-based navigation (no radio buttons)."""

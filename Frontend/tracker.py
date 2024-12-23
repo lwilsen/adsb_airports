@@ -45,6 +45,7 @@ from bs4 import BeautifulSoup as BS
 
 import base64
 
+
 def tracker():
 
     CLIENT_ID = "f25d7929-8ba4-44b5-8271-85fecb35f8a7"  # updated as of 12/17/2024
@@ -56,27 +57,25 @@ def tracker():
     config.sh_client_secret = CLIENT_SECRET
     config.save("my-profile")
 
-
     st.title("Data Visualization Page")
     st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
 
-    geo_dataframe = st.session_state['tracker_geo_dataframe.pkl']
-
+    geo_dataframe = st.session_state["tracker_geo_dataframe.pkl"]
 
     DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 
-
     RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=6)
-
 
     SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
 
-
-    params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
+    params = {
+        "Distance": DISTANCE,
+        "Resolution": RESOLUTION,
+        "Significance": SIGNIFICANCE,
+    }
 
     temp_url = "http://127.0.0.1:8000/map"
     actual_url = "http://airport_fastapi_route:5001/map"
-
 
     if SIGNIFICANCE >= 0:
 
@@ -149,7 +148,9 @@ def tracker():
             .sort_values(by="count", ascending=False)
         )
 
-        selected_flight = st.selectbox("Select a flight to track", tuple(flights_in_hex))
+        selected_flight = st.selectbox(
+            "Select a flight to track", tuple(flights_in_hex)
+        )
 
         selected_type = st.selectbox("Select the type of aircraft", tuple(types_in_hex))
 
@@ -189,7 +190,9 @@ def tracker():
             geometry_field="geometry",
         )
         try:
-            mb_center = h3.cell_to_latlng(flight_date_gdf[f"H3_{RESOLUTION}_cell"].iloc[0])
+            mb_center = h3.cell_to_latlng(
+                flight_date_gdf[f"H3_{RESOLUTION}_cell"].iloc[0]
+            )
 
             fig2 = go.Figure(
                 data=[
@@ -224,15 +227,15 @@ def tracker():
 
     st.subheader("Plane Lookup")
 
-    unique_types = st.session_state["tracker_geo_dataframe.pkl"]['type'].unique()
+    unique_types = st.session_state["tracker_geo_dataframe.pkl"]["type"].unique()
 
     plane = st.selectbox("Select a plane type to look up!", tuple(unique_types))
 
-    url = f'https://skybrary.aero/aircraft/{str(plane).lower()}'
+    url = f"https://skybrary.aero/aircraft/{str(plane).lower()}"
     response = requests.get(url)
-    soup = BS(response.text, 'html.parser')
+    soup = BS(response.text, "html.parser")
 
-    json_ld_script = soup.find('script', type='application/ld+json')
+    json_ld_script = soup.find("script", type="application/ld+json")
 
     if json_ld_script:
         # Parse the JSON data

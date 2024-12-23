@@ -7,12 +7,14 @@ import streamlit as st
 import requests
 import os
 
+
 def future():
 
     st.title("Conclusions and Acknowledgements")
 
     st.header("Airport identification")
-    st.write('''
+    st.write(
+        """
     ### Successes:\n
              - I was able to generally identify major airports, and identify evidence of aircraft activity
              in other areas that indicated smaller airports. \n
@@ -23,10 +25,12 @@ def future():
              and more information about smaller airports/helipads.\n
         - The image recognition model did not perform well, and a more powerful/advanced model should
              be used to help analyze satellite images.\n
-    ''')
+    """
+    )
 
     st.header("Flight Tracker")
-    st.write('''
+    st.write(
+        """
     ### Successes: \n
              - Most flights had enough observations to roughly track their flights during the timeframes
              for which data is available. \n
@@ -37,13 +41,13 @@ def future():
              - An increased frequency of data collection would allow for more precise tracking of 
              flight paths.
         - No real time tracking.
-    ''')
+    """
+    )
 
     st.header("Data statement")
     st.write(
-        '''
+        """
     The ADS-B data came from their online api, to which we were generously given access to by Brett Waugh. 
     The Plane type lookup data came from Skylibary (https://skybrary.aero/), and was available for free.
-    '''
+    """
     )
-
