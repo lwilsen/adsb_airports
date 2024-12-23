@@ -21,9 +21,9 @@ This script relies on several external libraries:
 * datetime
 """
 
-import requests
 import os
 import json
+import requests
 
 import streamlit as st
 import h3
@@ -31,7 +31,6 @@ import geopandas as gpd
 from utils import hexagons_dataframe_to_geojson, cell_to_shapely
 from streamlit_plotly_events import plotly_events
 import plotly.graph_objs as go
-import pandas as pd
 from sentinelhub import SHConfig
 from bs4 import BeautifulSoup as BS
 
@@ -66,6 +65,8 @@ def tracker():
     }
 
     actual_url = "http://airport_fastapi_route:5001/map"
+
+    geojson_obj_h3_gdf = []
 
     if SIGNIFICANCE >= 0:
 
@@ -111,8 +112,8 @@ def tracker():
     point_dict = fig2.data[0]["geojson"]["features"]
 
     hex_gjson_indx = []
-    for hex in selected_hexes:
-        hex_gjson_indx.append(hex["pointIndex"])
+    for hexx in selected_hexes:
+        hex_gjson_indx.append(hexx["pointIndex"])
 
     h3cell_id_list = []
     for hex_idx in hex_gjson_indx:
@@ -146,7 +147,7 @@ def tracker():
         st.write(f"You selected flight: {selected_flight}")
 
         selected_f_gdf = geo_dataframe[
-            (geo_dataframe[f"flight"] == selected_flight)
+            (geo_dataframe["flight"] == selected_flight)
             & (geo_dataframe["type"] == selected_type)
         ]
 
@@ -208,11 +209,15 @@ def tracker():
             fig2.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
             st.plotly_chart(fig2)
-        except:
+        except Exception as e:
             st.error("Select a valid Flight number and aircraft type combo")
+            if st.button("debug"):
+                st.write(f"Error: {e}")
 
-    except:
+    except Exception as e:
         st.error("Click on a Hex!")
+        if st.button("debug"):
+            st.write(f"Error: {e}")
 
     st.subheader("Plane Lookup")
 
@@ -221,7 +226,7 @@ def tracker():
     plane = st.selectbox("Select a plane type to look up!", tuple(unique_types))
 
     url = f"https://skybrary.aero/aircraft/{str(plane).lower()}"
-    response = requests.get(url)
+    response = requests.get(url, timeout= 10)
     soup = BS(response.text, "html.parser")
 
     json_ld_script = soup.find("script", type="application/ld+json")
