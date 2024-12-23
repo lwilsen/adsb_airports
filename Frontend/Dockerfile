@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8001
 
-CMD ["streamlit", "run", "adsb_front.py", "--server.port", "8001", "--server.address", "0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port", "8001", "--server.address", "0.0.0.0"]

@@ -11,3 +11,4 @@ matplotlib
 numpy
 streamlit
 openai
+bs4

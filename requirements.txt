@@ -17,3 +17,4 @@ sentinelhub
 Shapely
 streamlit
 streamlit_plotly_events
+bs4

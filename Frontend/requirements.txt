@@ -11,3 +11,4 @@ shapely
 matplotlib
 numpy
 openai
+bs4
