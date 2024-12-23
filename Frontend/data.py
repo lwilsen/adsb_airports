@@ -15,9 +15,6 @@ and ground speed using Matplotlib.
 
 import streamlit as st
 import pandas as pd
-from bs4 import BeautifulSoup as BS
-
-
 
 def data():
 

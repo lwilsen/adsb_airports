@@ -23,9 +23,9 @@ This script relies on several external libraries:
 
 import os
 import json
-import requests
 import datetime
 import base64
+import requests
 
 import streamlit as st
 import h3
@@ -151,7 +151,9 @@ def airports():
             "y_adjust": y_adjust,
             "cell_id": h3cell_id_list[0],
         }
-    except:
+    except Exception as e:
+        if st.button("debug"):
+            st.write(f"Error: {e}")
         st.write("Please click on a cell to view the satellite image.")
 
     # Now need to copy paste below funcionality into fastapi app
@@ -159,7 +161,9 @@ def airports():
     if st.button("Show me the satellite image!"):
         try:
             response = requests.post(actual_url, json={"data": box_params}, timeout=10)
-        except:
+        except Exception as e:
+            if st.button("debug"):
+                st.write(f"Error: {e}")
             st.write("Please select a cell to view")
 
         if response.status_code == 200:
