@@ -101,7 +101,7 @@ def hexagons_dataframe_to_geojson(
 
     list_features = []
 
-    for row in df_hex.iterrows():
+    for i, row in df_hex.iterrows():
         feature = Feature(
             geometry=row[geometry_field],
             id=row[hex_id_field],

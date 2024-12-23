@@ -47,26 +47,26 @@ def tracker():
     config.sh_client_secret = CLIENT_SECRET
     config.save("my-profile")
 
+
     st.title("Data Visualization Page")
     st.subheader("Choose a Distance, Hex Resolution and 'Level of Significance'")
 
-    geo_dataframe = st.session_state["tracker_geo_dataframe.pkl"]
+    geo_dataframe = st.session_state['tracker_geo_dataframe.pkl']
+
 
     DISTANCE = int(st.radio("Distance", ["500", "100", "200", "300", "400", "50"]))
 
+
     RESOLUTION = st.select_slider("Resolution", options=[6, 7, 8, 9, 10, 11], value=6)
+
 
     SIGNIFICANCE = st.number_input("Significance", 0, 1000, value=1)
 
-    params = {
-        "Distance": DISTANCE,
-        "Resolution": RESOLUTION,
-        "Significance": SIGNIFICANCE,
-    }
+
+    params = {"Distance": DISTANCE, "Resolution": RESOLUTION, "Significance": SIGNIFICANCE}
 
     actual_url = "http://airport_fastapi_route:5001/map"
 
-    geojson_obj_h3_gdf = []
 
     if SIGNIFICANCE >= 0:
 
@@ -112,8 +112,8 @@ def tracker():
     point_dict = fig2.data[0]["geojson"]["features"]
 
     hex_gjson_indx = []
-    for hexx in selected_hexes:
-        hex_gjson_indx.append(hexx["pointIndex"])
+    for hex in selected_hexes:
+        hex_gjson_indx.append(hex["pointIndex"])
 
     h3cell_id_list = []
     for hex_idx in hex_gjson_indx:
@@ -138,16 +138,14 @@ def tracker():
             .sort_values(by="count", ascending=False)
         )
 
-        selected_flight = st.selectbox(
-            "Select a flight to track", tuple(flights_in_hex)
-        )
+        selected_flight = st.selectbox("Select a flight to track", tuple(flights_in_hex))
 
         selected_type = st.selectbox("Select the type of aircraft", tuple(types_in_hex))
 
         st.write(f"You selected flight: {selected_flight}")
 
         selected_f_gdf = geo_dataframe[
-            (geo_dataframe["flight"] == selected_flight)
+            (geo_dataframe[f"flight"] == selected_flight)
             & (geo_dataframe["type"] == selected_type)
         ]
 
@@ -180,9 +178,7 @@ def tracker():
             geometry_field="geometry",
         )
         try:
-            mb_center = h3.cell_to_latlng(
-                flight_date_gdf[f"H3_{RESOLUTION}_cell"].iloc[0]
-            )
+            mb_center = h3.cell_to_latlng(flight_date_gdf[f"H3_{RESOLUTION}_cell"].iloc[0])
 
             fig2 = go.Figure(
                 data=[
@@ -211,25 +207,21 @@ def tracker():
             st.plotly_chart(fig2)
         except Exception as e:
             st.error("Select a valid Flight number and aircraft type combo")
-            if st.button("debug"):
-                st.write(f"Error: {e}")
 
     except Exception as e:
         st.error("Click on a Hex!")
-        if st.button("debug"):
-            st.write(f"Error: {e}")
 
     st.subheader("Plane Lookup")
 
-    unique_types = st.session_state["tracker_geo_dataframe.pkl"]["type"].unique()
+    unique_types = st.session_state["tracker_geo_dataframe.pkl"]['type'].unique()
 
     plane = st.selectbox("Select a plane type to look up!", tuple(unique_types))
 
-    url = f"https://skybrary.aero/aircraft/{str(plane).lower()}"
-    response = requests.get(url, timeout= 10)
-    soup = BS(response.text, "html.parser")
+    url = f'https://skybrary.aero/aircraft/{str(plane).lower()}'
+    response = requests.get(url)
+    soup = BS(response.text, 'html.parser')
 
-    json_ld_script = soup.find("script", type="application/ld+json")
+    json_ld_script = soup.find('script', type='application/ld+json')
 
     if json_ld_script:
         # Parse the JSON data
