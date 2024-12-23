@@ -1,33 +1,39 @@
 """
-This module provides functionality for setting up a FastAPI application, interacting with Sentinel Hub APIs, and working with utility functions, file handling, and databases.
+This module provides functionality for setting up a FastAPI application, 
+interacting with Sentinel Hub APIs, and working with utility functions, 
+file handling, and databases.
 
 Imports:
 - **FastAPI**: The core FastAPI class to create and configure the API.
 - **Request**: Used to handle HTTP requests in FastAPI routes.
-- **pickle**: A module for serializing and deserializing Python objects to and from byte streams.
-- **utils**: Custom utility functions for converting cell data to bounding boxes (cellToBbox) and creating DataFrames (make_dfs).
-- **os**: Provides a way to interact with the operating system, including file and directory management.
+- **pickle**: A module for serializing and deserializing Python objects to and 
+from byte streams.
+- **utils**: Custom utility functions for converting cell data to bounding boxes 
+(cellToBbox) and creating DataFrames (make_dfs).
+- **os**: Provides a way to interact with the operating system, including file 
+and directory management.
 - **sentinelhub.SHConfig**: Configuration class to set up Sentinel Hub access.
 - **sentinelhub**:
     - **CRS**: Represents coordinate reference systems used in Sentinel Hub.
     - **BBox**: A class to define bounding boxes used for spatial queries.
-    - **bbox_to_dimensions**: A utility function to calculate image dimensions from bounding box coordinates.
-- **sqlite3**: A module for interacting with SQLite databases, allowing queries and database management.
+    - **bbox_to_dimensions**: A utility function to calculate image 
+    dimensions from bounding box coordinates.
+- **sqlite3**: A module for interacting with SQLite databases, 
+allowing queries and database management.
 - **json**: A module to parse and handle JSON data.
 """
-
-from fastapi import FastAPI, Request
-import pickle
-from utils import cellToBbox, make_dfs
 import os
+import pickle
+import sqlite3
+from fastapi import FastAPI, Request
+from utils import cellToBbox, make_dfs
 from sentinelhub import SHConfig
 from sentinelhub import (
     CRS,
     BBox,
     bbox_to_dimensions,
 )
-import sqlite3
-import json
+
 
 """SENTINAL SETUP"""
 
@@ -123,7 +129,7 @@ async def handle_request(request: Request):
                 "geojson_obj_h3_gdf": geojson_obj_h3_gdf,
             }
 
-        elif "x_adjust" in data.get("data"):
+        if "x_adjust" in data.get("data"):
             box_params = data.get("data")
 
             x_adjust = box_params["x_adjust"]
