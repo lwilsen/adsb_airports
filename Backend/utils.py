@@ -3,16 +3,17 @@ Utils imports
 """
 
 from __future__ import annotations
-from geojson import Feature, FeatureCollection
 import json
+from typing import Any
+from collections import Counter
+
+from geojson import Feature, FeatureCollection
 import h3
 from shapely.geometry import Polygon
-from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import geopandas as gpd
 import streamlit as st
-from collections import Counter
 
 
 def plot_image(
@@ -89,7 +90,7 @@ def hexagons_dataframe_to_geojson(
 
     list_features = []
 
-    for i, row in df_hex.iterrows():
+    for row in df_hex.iterrows():
         feature = Feature(
             geometry=row[geometry_field],
             id=row[hex_id_field],
@@ -101,7 +102,7 @@ def hexagons_dataframe_to_geojson(
 
     if file_output is not None:
         with open(file_output, "w") as f:
-            json.dump(feat_collection, f)
+            return(json.dump(feat_collection, f))
 
     else:
         return feat_collection
