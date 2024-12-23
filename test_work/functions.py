@@ -213,7 +213,7 @@ def parse_file(file):
 
 def send_request_to_llm(prompt, base_url, workspace, api_key, file_content=None):
     """
-    Sends a request to the LLM with an optional file content.
+    Sends a request to anythingLLM with an optional file content.
 
     Args:
         prompt (str): The user prompt.
@@ -238,8 +238,7 @@ def send_request_to_llm(prompt, base_url, workspace, api_key, file_content=None)
     }
     data = {
         "message": llm_prompt,
-        "mode": "chat",
-        "sessionId": st.session_state["session_id"],
+        "mode": "chat"
     }
 
     try:
