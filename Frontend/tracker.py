@@ -21,29 +21,20 @@ This script relies on several external libraries:
 * datetime
 """
 
+import requests
+import os
+import json
+
 import streamlit as st
 import h3
 import geopandas as gpd
-from utils import st_plot_image, hexagons_dataframe_to_geojson, cell_to_shapely
+from utils import hexagons_dataframe_to_geojson, cell_to_shapely
 from streamlit_plotly_events import plotly_events
 import plotly.graph_objs as go
-import os
-import json
 import pandas as pd
 from sentinelhub import SHConfig
-from sentinelhub import (
-    BBox,
-    DataCollection,
-    MimeType,
-    SentinelHubRequest,
-)
-import requests
-import datetime
-from openai import OpenAI
-import pickle
 from bs4 import BeautifulSoup as BS
 
-import base64
 
 
 def tracker():
@@ -74,7 +65,6 @@ def tracker():
         "Significance": SIGNIFICANCE,
     }
 
-    temp_url = "http://127.0.0.1:8000/map"
     actual_url = "http://airport_fastapi_route:5001/map"
 
     if SIGNIFICANCE >= 0:
@@ -85,7 +75,6 @@ def tracker():
             try:
                 result = response.json()
                 geojson_obj_h3_gdf = result.get("geojson_obj_h3_gdf")
-                h3_df = pd.read_json(result.get("h3_df"))
                 h3_gdf = json.loads(result.get("h3_gdf"))
                 h3_gdf = gpd.GeoDataFrame.from_features(h3_gdf["features"])
 
@@ -219,10 +208,10 @@ def tracker():
             fig2.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
             st.plotly_chart(fig2)
-        except Exception as e:
+        except:
             st.error("Select a valid Flight number and aircraft type combo")
 
-    except Exception as e:
+    except:
         st.error("Click on a Hex!")
 
     st.subheader("Plane Lookup")

@@ -1,10 +1,10 @@
 """
-This script launches a streamlit app that is the home page of a ADSB data based data science project.
+This script launches a streamlit app that is the home page of a ADSB 
+data based data science project.
 """
 
-import streamlit as st
 import pickle
-
+import streamlit as st
 
 def home_page():
 

@@ -21,14 +21,18 @@ This script relies on several external libraries:
 * datetime
 """
 
+import os
+import json
+import requests
+import datetime
+import base64
+
 import streamlit as st
 import h3
 import geopandas as gpd
 from utils import st_plot_image
 from streamlit_plotly_events import plotly_events
 import plotly.graph_objs as go
-import os
-import json
 import pandas as pd
 from sentinelhub import SHConfig
 from sentinelhub import (
@@ -37,11 +41,9 @@ from sentinelhub import (
     MimeType,
     SentinelHubRequest,
 )
-import requests
-import datetime
 from openai import OpenAI
 
-import base64
+
 
 
 def airports():
@@ -69,7 +71,6 @@ def airports():
         "Significance": SIGNIFICANCE,
     }
 
-    temp_url = "http://127.0.0.1:8000/map"
     actual_url = "http://airport_fastapi_route:5001/map"
 
     if SIGNIFICANCE >= 0:
@@ -118,12 +119,13 @@ def airports():
         "features"
     ]  # can select using indices of selected hexes
     st.write(
-        "Click on a cell, and then press the button below to see the satellite image of that location."
+        """Click on a cell, and then press the button below 
+        to see the satellite image of that location."""
     )
 
     hex_gjson_indx = []
-    for hex in selected_hexes:
-        hex_gjson_indx.append(hex["pointIndex"])
+    for hexx in selected_hexes:
+        hex_gjson_indx.append(hexx["pointIndex"])
 
     h3cell_id_list = []
     for hex_idx in hex_gjson_indx:

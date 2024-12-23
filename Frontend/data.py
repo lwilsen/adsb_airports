@@ -5,7 +5,8 @@ It reads a pickled DataFrame from 'grounded.pkl' and performs the following:
 
 1. **Displays a descriptive text:** Provides context about the data and analysis.
 2. **Displays a table:** Shows a tabular representation of the first few rows of the DataFrame.
-3. **Plots histograms:** Visualizes the distribution of latitude, longitude, and ground speed using Matplotlib.
+3. **Plots histograms:** Visualizes the distribution of latitude, longitude, 
+and ground speed using Matplotlib.
     - Latitude histogram: Shows the frequency of different latitude values.
     - Longitude histogram: Shows the frequency of different longitude values.
     - Ground Speed histogram: Shows the frequency of different ground speed values.
@@ -14,9 +15,8 @@ It reads a pickled DataFrame from 'grounded.pkl' and performs the following:
 
 import streamlit as st
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup as BS
-import json
+
 
 
 def data():
@@ -26,7 +26,10 @@ def data():
         """
     ##### What is ADS-B Data?
 
-    ADS-B (Automatic Dependent Surveillance–Broadcast) is a surveillance technology used in aviation for tracking aircraft. It provides precise location and status information through messages transmitted by aircraft and picked up by ground stations or satellites.
+    ADS-B (Automatic Dependent Surveillance–Broadcast) is a surveillance technology 
+    used in aviation for tracking aircraft. It provides precise location and 
+    status information through messages transmitted by aircraft and picked up 
+    by ground stations or satellites.
 
     ---
 
@@ -48,7 +51,7 @@ def data():
     ---"""
     )
 
-    data = {
+    df = {
         "alt_baro": [
             34000,
             36000,
@@ -139,7 +142,7 @@ def data():
     }
 
     # Create a DataFrame
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(df)
 
     # Display the table in the Streamlit app
     st.subheader("Flight Data Table")
@@ -152,12 +155,21 @@ def data():
         st.markdown(
             """
         * **A0:** No ADS-B emitter category information.
-        * **A1:** Light (< 15500 lbs) - Any airplane with a maximum takeoff weight less than 15,500 pounds.
-        * **A2:** Small (15500 to 75000 lbs) - Any airplane with a maximum takeoff weight greater than or equal to 15,500 pounds but less than 75,000 pounds.
-        * **A3:** Large (75000 to 300000 lbs) - Any airplane with a maximum takeoff weight greater than or equal to 75,000 pounds but less than 300,000 pounds that does not qualify for the high vortex category.
-        * **A4:** High vortex large (aircraft such as B-757) - Any airplane with a maximum takeoff weight greater than or equal to 75,000 pounds but less than 300,000 pounds that has been determined to generate a high wake vortex.
-        * **A5:** Heavy (> 300000 lbs) - Any airplane with a maximum takeoff weight equal to or above 300,000 pounds.
-        * **A6:** High performance (> 5g acceleration and 400 kts) - Any airplane, regardless of weight, which can maneuver in excess of 5 G's and maintain true airspeed above 400 knots.
+        * **A1:** Light (< 15500 lbs) - Any airplane with a maximum takeoff weight 
+        less than 15,500 pounds.
+        * **A2:** Small (15500 to 75000 lbs) - Any airplane with a maximum takeoff 
+        weight greater than or equal to 15,500 pounds but less than 75,000 pounds.
+        * **A3:** Large (75000 to 300000 lbs) - Any airplane with a maximum takeoff 
+        weight greater than or equal to 75,000 pounds but less than 300,000 pounds 
+        that does not qualify for the high vortex category.
+        * **A4:** High vortex large (aircraft such as B-757) - Any airplane with a 
+        maximum takeoff weight greater than or equal to 75,000 pounds but less than 
+        300,000 pounds that has been determined to generate a high wake vortex.
+        * **A5:** Heavy (> 300000 lbs) - Any airplane with a maximum takeoff weight 
+        equal to or above 300,000 pounds.
+        * **A6:** High performance (> 5g acceleration and 400 kts) - Any airplane, 
+        regardless of weight, which can maneuver in excess of 5 G's and maintain true 
+        airspeed above 400 knots.
         * **A7:** Rotorcraft - Any rotorcraft regardless of weight.
         """
         )
@@ -169,9 +181,11 @@ def data():
         * **B1:** Glider / sailplane - Any glider or sailplane regardless of weight.
         * **B2:** Lighter-than-air - Any lighter than air (airship or balloon) regardless of weight.
         * **B3:** Parachutist / skydiver
-        * **B4:** Ultralight / hang-glider / paraglider - A vehicle that meets the requirements of 14 CFR § 103.1.
+        * **B4:** Ultralight / hang-glider / paraglider - A vehicle that meets the requirements 
+        of 14 CFR § 103.1.
         * **B5:** Reserved
-        * **B6:** Unmanned aerial vehicle - Any unmanned aerial vehicle or unmanned aircraft system regardless of weight.
+        * **B6:** Unmanned aerial vehicle - Any unmanned aerial vehicle or unmanned aircraft 
+        system regardless of weight.
         * **B7:** Space / trans-atmospheric vehicle
         """
         )
