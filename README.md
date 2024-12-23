@@ -17,3 +17,4 @@ and go to the localhost link provided in your terminal/console window.
 
 Here's a quick demo of the app's functionality!
 
+![App Demo](adsb_proj_demo.gif)
